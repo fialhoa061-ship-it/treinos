@@ -32,5 +32,15 @@ export default async function TreinoPage() {
 
   const [lw] = await rows(s`select workout_id from sessions where student_id = ${st.id} order by finished_at desc, id desc limit 1`);
 
-  return <Aluno sid={st.id} name={st.name} notes={st.notes} workouts={workouts as never} last={last} lastWorkoutId={lw?.workout_id ?? null} />;
+  // calendário: dia (horário de Brasília) e treino de cada sessão
+  const [days, [{ today }]] = await Promise.all([
+    rows(s`
+      select to_char(se.finished_at at time zone 'America/Sao_Paulo', 'YYYY-MM-DD') as d, w.name as w, w.focus
+      from sessions se join workouts w on w.id = se.workout_id
+      where se.student_id = ${st.id} order by se.finished_at`),
+    rows(s`select to_char(now() at time zone 'America/Sao_Paulo', 'YYYY-MM-DD') as today`),
+  ]);
+
+  return <Aluno sid={st.id} name={st.name} notes={st.notes} workouts={workouts as never} last={last} lastWorkoutId={lw?.workout_id ?? null}
+    sessions={days as never} today={today} />;
 }

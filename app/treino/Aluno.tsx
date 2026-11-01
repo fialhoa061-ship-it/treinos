@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { saveSession, type Payload } from './actions';
 import { studentLogout } from '../login/actions';
+import Calendario, { type Dia } from './Calendario';
 
 type Ex = { id: number; name: string; sets: number; reps: string; rest: string; notes: string | null; video_url: string | null };
 type Workout = { id: number; name: string; focus: string | null; exercises: Ex[] };
@@ -39,9 +40,9 @@ function beep() {
   } catch { /* sem áudio */ }
 }
 
-export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId }: {
+export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId, sessions, today }: {
   sid: number; name: string; notes: string | null; workouts: Workout[];
-  last: Record<string, LastSet[]>; lastWorkoutId: number | null;
+  last: Record<string, LastSet[]>; lastWorkoutId: number | null; sessions: Dia[]; today: string;
 }) {
   const pkey = `pend:${sid}`;
   const wkey = (id: number) => `treino:${sid}:${id}`;
@@ -153,6 +154,7 @@ export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId 
     <main>
       <header><span className="hi">Bom treino</span><h1>Olá, {name}</h1></header>
       {notes && <details className="notes"><summary>Orientações gerais</summary><p>{notes}</p></details>}
+      <Calendario sessions={sessions} today={today} />
 
       <nav className="tabs">
         {workouts.map(w => (
