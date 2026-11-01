@@ -2,7 +2,7 @@
 //      SEED_EMAIL=... SEED_PASSWORD=... node --env-file=.env.local scripts/db.mjs seed
 import { neon } from '@neondatabase/serverless';
 import bcrypt from 'bcryptjs';
-import { randomBytes } from 'node:crypto';
+import { randomInt } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
 const sql = neon(process.env.DATABASE_URL);
@@ -48,7 +48,7 @@ if (cmd === 'schema') {
   const hash = await bcrypt.hash(SEED_PASSWORD, 10);
   await sql`insert into users (email, password_hash) values (${SEED_EMAIL}, ${hash}) on conflict (email) do update set password_hash = excluded.password_hash`;
   const [st] = await sql`insert into students (name, weight_kg, height_m, goal, notes, token)
-    values ('Mãe', 62.8, 1.49, 'Fortalecer coxa, ganhar glúteo, definir braço (recomposição corporal)', ${NOTES}, ${randomBytes(32).toString('hex')}) returning id, token`;
+    values ('Mãe', 62.8, 1.49, 'Fortalecer coxa, ganhar glúteo, definir braço (recomposição corporal)', ${NOTES}, ${Array.from({ length: 12 }, () => 'abcdefghijklmnopqrstuvwxyz0123456789'[randomInt(36)]).join('')}) returning id, token`;
   for (const [i, [name, focus, exs]] of WORKOUTS.entries()) {
     const [w] = await sql`insert into workouts (student_id, name, focus, position) values (${st.id}, ${name}, ${focus}, ${i + 1}) returning id`;
     for (const [p, [en, sets, reps, rest, notes]] of exs.entries()) {
@@ -56,5 +56,5 @@ if (cmd === 'schema') {
       await sql`insert into exercise_library (name, notes) values (${en}, ${notes}) on conflict (name) do nothing`;
     }
   }
-  console.log('seed ok. token da Mãe:', st.token);
+  console.log('seed ok. link da Mãe: /mae-fitapp-' + st.token);
 } else console.log('uso: schema | seed');

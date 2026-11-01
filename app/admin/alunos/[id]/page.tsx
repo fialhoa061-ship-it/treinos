@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { rows, sql } from '@/lib/db';
-import { imc } from '@/lib/util';
+import { imc, studentPath } from '@/lib/util';
 import { Act } from '../../ui';
 import { CopyLink, ExerciseForm } from '../../Client';
 import { deleteExercise, deleteStudent, deleteWorkout, duplicateWorkout, moveExercise, moveWorkout, newLink, saveExercise, saveStudent, saveWorkout } from '../../actions';
@@ -29,7 +29,7 @@ export default async function Aluno({ params, searchParams }: { params: Promise<
       <h1>{st.name} {bmi && <small>IMC {bmi}</small>}</h1>
 
       <div className="card">
-        <CopyLink token={st.token} />
+        <CopyLink path={studentPath(st.name, st.token)} />
         <div className="row" style={{ marginTop: 8 }}>
           <Act action={newLink} fields={{ id }} label="Gerar novo link" confirm="O link antigo deixará de funcionar. Continuar?" />
           <Link className="btn" href={`/admin/historico/${id}`}>Histórico de cargas</Link>

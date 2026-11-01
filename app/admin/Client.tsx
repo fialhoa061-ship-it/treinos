@@ -6,10 +6,10 @@ export function ConfirmButton({ confirm: msg, className, children }: { confirm?:
   return <button className={className} onClick={e => { if (msg && !window.confirm(msg)) e.preventDefault(); }}>{children}</button>;
 }
 
-export function CopyLink({ token }: { token: string }) {
+export function CopyLink({ path }: { path: string }) {
   const [url, setUrl] = useState('');
   const [done, setDone] = useState(false);
-  useEffect(() => setUrl(`${location.origin}/aluno/${token}`), [token]);
+  useEffect(() => setUrl(location.origin + path), [path]);
   return (
     <>
       <p><input readOnly value={url} aria-label="Link do aluno" onFocus={e => e.currentTarget.select()} /></p>

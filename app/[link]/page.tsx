@@ -1,14 +1,14 @@
 import { rows, sql } from '@/lib/db';
-import { TOKEN_RE } from '@/lib/util';
+import { tokenFromLink } from '@/lib/util';
 import Aluno from './Aluno';
 
 export const metadata = { title: 'Meu treino', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
-export default async function AlunoPage({ params }: { params: Promise<{ token: string }> }) {
-  const { token } = await params;
+export default async function AlunoPage({ params }: { params: Promise<{ link: string }> }) {
+  const token = tokenFromLink(decodeURIComponent((await params).link)) ?? '';
   const s = sql();
-  const [st] = TOKEN_RE.test(token) ? await rows(s`select id, name, notes from students where token = ${token}`) : [];
+  const [st] = token ? await rows(s`select id, name, notes from students where token = ${token}`) : [];
   if (!st) {
     return <main><p>Link inválido ou expirado. Peça um novo ao professor.</p></main>;
   }

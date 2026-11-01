@@ -2,8 +2,8 @@
 
 import { useActionState, useState } from 'react';
 import { login } from './actions';
+import { tokenFromLink } from '@/lib/util';
 
-const TOKEN = /[a-f0-9]{64}/i;
 
 export default function LoginForm() {
   const [tab, setTab] = useState<0 | 1>(0);
@@ -13,9 +13,9 @@ export default function LoginForm() {
 
   function openStudent(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const m = String(new FormData(e.currentTarget).get('link')).match(TOKEN);
-    setLinkErr(!m);
-    if (m) location.href = `/aluno/${m[0].toLowerCase()}`;
+    const t = tokenFromLink(String(new FormData(e.currentTarget).get('link')));
+    setLinkErr(!t);
+    if (t) location.href = `/aluno-fitapp-${t}`;
   }
 
   return (

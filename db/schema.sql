@@ -11,7 +11,7 @@ create table if not exists students (
   age int,
   goal text,
   notes text,
-  token char(64) unique not null
+  token text unique not null
 );
 create table if not exists workouts (
   id serial primary key,
