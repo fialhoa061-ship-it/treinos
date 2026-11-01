@@ -28,5 +28,5 @@ export const studentPath = (name: string, token: string) => `/${slugify(name)}-f
 /** Extrai o código de um link/caminho colado, ou de um código puro. */
 export function tokenFromLink(s: string): string | null {
   const t = s.trim().toLowerCase();
-  return t.match(/-fitapp-([a-z0-9]{12})(?:[/?#]|$)/)?.[1] ?? (TOKEN_RE.test(t) ? t : null);
+  return t.match(/-fitapp-([a-z0-9]{12})/)?.[1] ?? (TOKEN_RE.test(t) ? t : null);
 }
