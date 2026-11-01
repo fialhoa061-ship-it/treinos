@@ -1,1 +1,7 @@
-config/config.php
+node_modules
+.next
+.vercel
+.env*
+next-env.d.ts
+legacy-php/config/config.php
+tsconfig.tsbuildinfo
