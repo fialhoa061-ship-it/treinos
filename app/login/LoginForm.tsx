@@ -9,12 +9,13 @@ export default function LoginForm() {
   const [tab, setTab] = useState<0 | 1>(0);
   const [showPw, setShowPw] = useState(false);
   const [err, action, pending] = useActionState(login, '');
-  const [linkErr, setLinkErr] = useState(false);
+  const [linkErr, setLinkErr] = useState('');
 
   function openStudent(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const t = tokenFromLink(String(new FormData(e.currentTarget).get('link')));
-    setLinkErr(!t);
+    const raw = String(new FormData(e.currentTarget).get('link'));
+    const t = tokenFromLink(raw);
+    setLinkErr(t ? '' : raw.includes('-fitapp-') ? 'Link incompleto: falta parte do código no final. Copie o endereço inteiro.' : 'Link inválido. Confira se copiou o endereço inteiro.');
     if (t) location.href = `/aluno-fitapp-${t}`;
   }
 
@@ -50,7 +51,7 @@ export default function LoginForm() {
         <form onSubmit={openStudent}>
           <p className="hint">Cole o link que o professor enviou para você.</p>
           <label className="field"><input name="link" placeholder="Link do treino" aria-label="Link do treino" autoComplete="off" required /></label>
-          {linkErr && <p className="err" role="alert">Link inválido. Confira se copiou o endereço inteiro.</p>}
+          {linkErr && <p className="err" role="alert">{linkErr}</p>}
           <button className="go">Abrir treino</button>
         </form>
       )}
