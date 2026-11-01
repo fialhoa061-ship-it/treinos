@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import Intro from './Intro';
 
 export const metadata: Metadata = {
   title: 'Treinos',
@@ -11,8 +12,11 @@ export const viewport: Viewport = { themeColor: '#050816', width: 'device-width'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <body>
+        {/* decide antes da pintura: abertura só 1x por sessão e nunca com "reduzir movimento" */}
+        <script dangerouslySetInnerHTML={{ __html: "try{if(sessionStorage.getItem('intro')||matchMedia('(prefers-reduced-motion:reduce)').matches)document.documentElement.dataset.intro='off'}catch(e){}" }} />
+        <Intro />
         {/* lente do liquid glass: distorce o que está atrás dos controles (backdrop-filter: url(#liquid)) */}
         <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true" focusable="false">
           <filter id="liquid" x="-10%" y="-10%" width="120%" height="120%" colorInterpolationFilters="sRGB">

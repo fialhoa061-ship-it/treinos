@@ -158,3 +158,13 @@ svg.chart{width:100%;height:200px;background:rgba(255,255,255,.05);border-radius
   .ambient i{animation:none}
   *{transition:none!important}
 }
+
+/* ---------- abertura animada (Intro.tsx) ---------- */
+.intro{position:fixed;inset:0;z-index:9999;background:#1a7bff;display:grid;place-items:center;overflow:hidden;cursor:pointer;touch-action:manipulation}
+html[data-intro=off] .intro{display:none}
+.intro-logo{display:flex;align-items:center;font-size:clamp(2.4rem,11vw,3.6rem);font-weight:700;letter-spacing:.01em;color:#fff;line-height:1}
+.intro-name{display:inline-flex;overflow:hidden;white-space:pre;width:0}
+.intro-sym{display:block;width:1.35em;height:1.35em;margin-left:.2em}
+.intro-sym svg{display:block;width:100%;height:100%}
+.intro-flood{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.intro{display:none}}
