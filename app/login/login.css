@@ -42,3 +42,18 @@
 .seg button[aria-selected="true"]{color:var(--ink)}
 .hint{margin:0 0 14px;font-size:.9rem;color:var(--mute)}
 @media (prefers-reduced-motion:reduce){.streak{animation:none}.seg::before{transition:none}}
+
+/* ---- vidro: cartão (glassmorphism) + controles (liquid glass) ---- */
+.glass{background:var(--g-glint),var(--g-fill);border:1px solid var(--g-line);
+  -webkit-backdrop-filter:blur(28px) saturate(180%);backdrop-filter:blur(28px) saturate(180%);
+  box-shadow:0 30px 90px rgba(0,0,0,.55),var(--g-edge)}
+.go{background:var(--l-fill);border:1px solid var(--l-line);box-shadow:var(--l-edge),var(--l-shadow);
+  -webkit-backdrop-filter:blur(10px) saturate(190%);backdrop-filter:url(#liquid) blur(8px) saturate(190%);
+  transition:transform .35s var(--spring),filter .2s}
+.go:hover{background:var(--l-fill);color:var(--ink);filter:brightness(1.2)}
+.go:active{transform:scale(.96)}
+.seg button{background:none;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;filter:none;transform:none;color:var(--mute)}
+.seg button[aria-selected="true"]{color:var(--ink)}
+.seg::before{background:var(--l-fill);box-shadow:var(--l-edge);transition:translate .45s var(--spring)}
+.field button.ico{box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;background:none;border:0;padding:0}
+@media (prefers-reduced-transparency:reduce){.glass{background:#141b44;-webkit-backdrop-filter:none;backdrop-filter:none}}
