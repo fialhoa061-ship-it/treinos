@@ -1,0 +1,76 @@
+SET NAMES utf8mb4;
+
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(190) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE students (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  weight_kg DECIMAL(5,1) NULL,
+  height_m DECIMAL(3,2) NULL,
+  age TINYINT UNSIGNED NULL,
+  goal TEXT NULL,
+  notes TEXT NULL,
+  token CHAR(64) NOT NULL UNIQUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE workouts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  student_id INT NOT NULL,
+  name VARCHAR(20) NOT NULL,
+  focus VARCHAR(120) NULL,
+  position INT NOT NULL DEFAULT 0,
+  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE exercise_library (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL UNIQUE,
+  video_url VARCHAR(500) NULL,
+  notes TEXT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE workout_exercises (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  workout_id INT NOT NULL,
+  name VARCHAR(150) NOT NULL,
+  sets TINYINT UNSIGNED NOT NULL DEFAULT 3,
+  reps VARCHAR(40) NOT NULL DEFAULT '10',
+  rest VARCHAR(40) NOT NULL DEFAULT '90 s',
+  notes TEXT NULL,
+  video_url VARCHAR(500) NULL,
+  position INT NOT NULL DEFAULT 0,
+  FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE sessions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  student_id INT NOT NULL,
+  workout_id INT NOT NULL,
+  finished_at DATETIME NOT NULL,
+  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+  FOREIGN KEY (workout_id) REFERENCES workouts(id) ON DELETE CASCADE,
+  INDEX (student_id, finished_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE set_logs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  session_id INT NOT NULL,
+  workout_exercise_id INT NOT NULL,
+  set_number TINYINT UNSIGNED NOT NULL,
+  weight_kg DECIMAL(6,2) NULL,
+  reps SMALLINT UNSIGNED NULL,
+  FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+  FOREIGN KEY (workout_exercise_id) REFERENCES workout_exercises(id) ON DELETE CASCADE,
+  UNIQUE (session_id, workout_exercise_id, set_number)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE login_attempts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  ip VARCHAR(45) NOT NULL,
+  created_at DATETIME NOT NULL,
+  INDEX (ip, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
