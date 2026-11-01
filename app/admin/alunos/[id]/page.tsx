@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { rows, sql } from '@/lib/db';
-import { imc, studentPath } from '@/lib/util';
+import { imc } from '@/lib/util';
 import { Act } from '../../ui';
-import { CopyLink, ExerciseForm } from '../../Client';
-import { deleteExercise, deleteStudent, deleteWorkout, duplicateWorkout, moveExercise, moveWorkout, newLink, saveExercise, saveStudent, saveWorkout } from '../../actions';
+import { AccessCode, ExerciseForm } from '../../Client';
+import { deleteExercise, deleteStudent, deleteWorkout, duplicateWorkout, moveExercise, moveWorkout, newAccessCode, saveExercise, saveStudent, saveWorkout } from '../../actions';
 
 export default async function Aluno({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ m?: string }> }) {
   const { id: raw } = await params;
@@ -29,9 +29,9 @@ export default async function Aluno({ params, searchParams }: { params: Promise<
       <h1>{st.name} {bmi && <small>IMC {bmi}</small>}</h1>
 
       <div className="card">
-        <CopyLink path={studentPath(st.name, st.token)} />
+        <AccessCode code={st.access_code} name={st.name} />
         <div className="row" style={{ marginTop: 8 }}>
-          <Act action={newLink} fields={{ id }} label="Gerar novo link" confirm="O link antigo deixará de funcionar. Continuar?" />
+          <Act action={newAccessCode} fields={{ id }} label="Gerar novo código" confirm="O código antigo deixará de funcionar e o aluno será desconectado. Continuar?" />
           <Link className="btn" href={`/admin/historico/${id}`}>Histórico de cargas</Link>
         </div>
       </div>

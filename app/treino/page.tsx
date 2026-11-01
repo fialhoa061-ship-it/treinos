@@ -1,17 +1,15 @@
+import { redirect } from 'next/navigation';
 import { rows, sql } from '@/lib/db';
-import { tokenFromLink } from '@/lib/util';
+import { getStudent } from '@/lib/auth';
 import Aluno from './Aluno';
 
 export const metadata = { title: 'Meu treino', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
-export default async function AlunoPage({ params }: { params: Promise<{ link: string }> }) {
-  const token = tokenFromLink(decodeURIComponent((await params).link)) ?? '';
+export default async function TreinoPage() {
+  const st = await getStudent();
+  if (!st) redirect('/login');
   const s = sql();
-  const [st] = token ? await rows(s`select id, name, notes from students where token = ${token}`) : [];
-  if (!st) {
-    return <main><p>Link inválido ou expirado. Peça um novo ao professor.</p></main>;
-  }
 
   const workouts = await rows(s`
     select w.id, w.name, w.focus,
@@ -22,7 +20,7 @@ export default async function AlunoPage({ params }: { params: Promise<{ link: st
   // última sessão de cada exercício
   const logs = await rows(s`
     select distinct on (sl.workout_exercise_id, sl.set_number)
-      sl.workout_exercise_id as we, sl.set_number as n, sl.weight_kg as w, sl.reps as r, sl.session_id
+      sl.workout_exercise_id as we, sl.set_number as n, sl.weight_kg as w, sl.reps as r
     from set_logs sl join sessions se on se.id = sl.session_id
     where se.student_id = ${st.id}
       and se.id = (select se2.id from set_logs s2 join sessions se2 on se2.id = s2.session_id
@@ -34,5 +32,5 @@ export default async function AlunoPage({ params }: { params: Promise<{ link: st
 
   const [lw] = await rows(s`select workout_id from sessions where student_id = ${st.id} order by finished_at desc, id desc limit 1`);
 
-  return <Aluno token={token} name={st.name} notes={st.notes} workouts={workouts as never} last={last} lastWorkoutId={lw?.workout_id ?? null} />;
+  return <Aluno sid={st.id} name={st.name} notes={st.notes} workouts={workouts as never} last={last} lastWorkoutId={lw?.workout_id ?? null} />;
 }

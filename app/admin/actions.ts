@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { rows, sql } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
-import { newToken } from '@/lib/util';
+import { newCode } from '@/lib/util';
 
 const str = (f: FormData, k: string, max = 255) => String(f.get(k) ?? '').trim().slice(0, max);
 const int = (f: FormData, k: string) => Number(f.get(k) ?? 0) | 0;
@@ -15,6 +15,15 @@ const num = (f: FormData, k: string): number | null => {
 const url = (f: FormData) => (/^https?:\/\//i.test(str(f, 'video_url', 500)) ? str(f, 'video_url', 500) : null);
 const back = (to: string, msg = ''): never => redirect(msg ? `${to}${to.includes('?') ? '&' : '?'}m=${encodeURIComponent(msg)}` : to);
 const student = (id: number | string, msg = '') => back(`/admin/alunos/${id}`, msg);
+
+// código de 6 dígitos ainda não usado por outro aluno (o código sozinho identifica o aluno)
+async function uniqueCode(): Promise<string> {
+  for (let i = 0; i < 20; i++) {
+    const c = newCode();
+    if (!(await rows(sql()`select 1 from students where access_code = ${c}`)).length) return c;
+  }
+  throw new Error('Sem código livre');
+}
 
 // ---- alunos ----
 export async function saveStudent(f: FormData) {
@@ -27,8 +36,8 @@ export async function saveStudent(f: FormData) {
   if (id) {
     await s`update students set name=${name}, weight_kg=${num(f, 'weight_kg')}, height_m=${num(f, 'height_m')}, age=${age}, goal=${str(f, 'goal', 2000)}, notes=${str(f, 'notes', 4000)} where id=${id}`;
   } else {
-    [{ id: sid }] = await rows(s`insert into students (name, weight_kg, height_m, age, goal, notes, token)
-      values (${name}, ${num(f, 'weight_kg')}, ${num(f, 'height_m')}, ${age}, ${str(f, 'goal', 2000)}, ${str(f, 'notes', 4000)}, ${newToken()}) returning id`);
+    [{ id: sid }] = await rows(s`insert into students (name, weight_kg, height_m, age, goal, notes, access_code)
+      values (${name}, ${num(f, 'weight_kg')}, ${num(f, 'height_m')}, ${age}, ${str(f, 'goal', 2000)}, ${str(f, 'notes', 4000)}, ${await uniqueCode()}) returning id`);
   }
   student(sid, 'Salvo');
 }
@@ -39,11 +48,11 @@ export async function deleteStudent(f: FormData) {
   back('/admin', 'Aluno removido');
 }
 
-export async function newLink(f: FormData) {
+export async function newAccessCode(f: FormData) {
   await requireAdmin();
   const id = int(f, 'id');
-  await sql()`update students set token=${newToken()} where id=${id}`;
-  student(id, 'Novo link gerado; o antigo não funciona mais');
+  await sql()`update students set access_code=${await uniqueCode()} where id=${id}`;
+  student(id, 'Novo código gerado; o antigo não funciona mais');
 }
 
 // ---- treinos ----

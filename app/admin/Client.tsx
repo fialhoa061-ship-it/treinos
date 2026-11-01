@@ -6,16 +6,19 @@ export function ConfirmButton({ confirm: msg, className, children }: { confirm?:
   return <button className={className} onClick={e => { if (msg && !window.confirm(msg)) e.preventDefault(); }}>{children}</button>;
 }
 
-export function CopyLink({ path }: { path: string }) {
-  const [url, setUrl] = useState('');
+export function AccessCode({ code, name }: { code: string | null; name: string }) {
+  const [site, setSite] = useState('');
   const [done, setDone] = useState(false);
-  useEffect(() => setUrl(location.origin + path), [path]);
+  useEffect(() => setSite(location.origin), []);
+  if (!code) return <p className="muted">Este aluno ainda não tem código de acesso. Gere um abaixo.</p>;
+  const msg = `Oi, ${name}! Seu treino está pronto. Acesse ${site}/login, toque em "Aluno" e digite o código ${code}.`;
   return (
     <>
-      <p><input readOnly value={url} aria-label="Link do aluno" onFocus={e => e.currentTarget.select()} /></p>
+      <p className="muted" style={{ margin: 0 }}>Código de acesso do aluno</p>
+      <p style={{ fontSize: '2.4rem', fontWeight: 700, letterSpacing: '.3em', margin: '4px 0 12px' }} aria-label={`Código ${code.split('').join(' ')}`}>{code}</p>
       <div className="row">
-        <button type="button" onClick={async () => { await navigator.clipboard.writeText(url); setDone(true); }}>{done ? 'Copiado ✓' : 'Copiar link do aluno'}</button>
-        <a className="btn" target="_blank" rel="noopener" href={`https://wa.me/?text=${encodeURIComponent('Seu treino: ' + url)}`}>Enviar no WhatsApp</a>
+        <button type="button" onClick={async () => { await navigator.clipboard.writeText(code); setDone(true); }}>{done ? 'Copiado ✓' : 'Copiar código'}</button>
+        <a className="btn" target="_blank" rel="noopener" href={`https://wa.me/?text=${encodeURIComponent(msg)}`}>Enviar no WhatsApp</a>
       </div>
     </>
   );

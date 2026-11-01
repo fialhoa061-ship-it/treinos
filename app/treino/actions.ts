@@ -1,17 +1,16 @@
 'use server';
 
 import { rows, sql } from '@/lib/db';
-import { TOKEN_RE } from '@/lib/util';
+import { getStudent } from '@/lib/auth';
 
 type Log = { we_id: number; set: number; weight: string; reps: string };
 export type Payload = { workout_id: number; logs: Log[]; at?: string };
 
-/** Grava a sessão de um aluno (autenticado só pelo token). Tudo numa única instrução = atômico. */
-export async function saveSession(token: string, p: Payload): Promise<{ ok: boolean }> {
-  if (!TOKEN_RE.test(token)) return { ok: false };
+/** Grava a sessão do aluno logado. Tudo numa única instrução = atômico. */
+export async function saveSession(p: Payload): Promise<{ ok: boolean; expired?: boolean }> {
+  const st = await getStudent();
+  if (!st) return { ok: false, expired: true };
   const s = sql();
-  const [st] = await rows(s`select id from students where token = ${token}`);
-  if (!st) return { ok: false };
 
   const valid = new Set((await rows(s`
     select we.id from workout_exercises we join workouts w on w.id = we.workout_id

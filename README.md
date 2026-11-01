@@ -1,9 +1,9 @@
-# Treinos
+﻿# Treinos
 
 Web app de gestão de treinos de musculação. Next.js (App Router) + Postgres (Neon), pronto para a Vercel e instalável no celular.
 
 - **Professor:** `/login` (e-mail + senha). Gerencia alunos, treinos, exercícios, biblioteca, histórico com gráfico e backup JSON.
-- **Aluno:** `/aluno/<token>`, sem senha. Vê só o próprio treino, marca séries, registra cargas e usa o timer de descanso. O progresso fica no celular e o envio ao finalizar tem fila offline.
+- **Aluno:** aba "Aluno" em `/login`, com um código de 6 números gerado no cadastro (o professor vê e envia pelo WhatsApp). O acesso fica salvo no celular por 30 dias. Vê só o próprio treino, marca séries, registra cargas e usa o timer de descanso. O progresso fica no celular e o envio ao finalizar tem fila offline.
 
 ## Rodar localmente
 
@@ -32,3 +32,4 @@ O seed cria o professor, a aluna "Mãe" e os 4 treinos (sem vídeos) e imprime o
 - Vídeos: YouTube (watch, youtu.be, shorts), Vimeo e `.mp4`; abrem só ao clicar em "▶ Ver execução".
 - Backup: **Backup → Exportar JSON**. Importar **substitui todos os dados** e aceita o formato do backup da versão PHP. O arquivo inclui os tokens dos alunos.
 - `legacy-php/` guarda a versão anterior em PHP/MySQL (hospedagem compartilhada). Não é usada pelo app novo.
+

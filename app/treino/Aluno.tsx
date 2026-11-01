@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { saveSession, type Payload } from './actions';
+import { studentLogout } from '../login/actions';
 
 type Ex = { id: number; name: string; sets: number; reps: string; rest: string; notes: string | null; video_url: string | null };
 type Workout = { id: number; name: string; focus: string | null; exercises: Ex[] };
@@ -38,12 +39,12 @@ function beep() {
   } catch { /* sem áudio */ }
 }
 
-export default function Aluno({ token, name, notes, workouts, last, lastWorkoutId }: {
-  token: string; name: string; notes: string | null; workouts: Workout[];
+export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId }: {
+  sid: number; name: string; notes: string | null; workouts: Workout[];
   last: Record<string, LastSet[]>; lastWorkoutId: number | null;
 }) {
-  const pkey = `pend:${token}`;
-  const wkey = (id: number) => `treino:${token}:${id}`;
+  const pkey = `pend:${sid}`;
+  const wkey = (id: number) => `treino:${sid}:${id}`;
 
   const nextId = workouts.length ? workouts[(workouts.findIndex(w => w.id === lastWorkoutId) + 1) % workouts.length].id : 0;
   const [wid, setWid] = useState(nextId);
@@ -61,7 +62,7 @@ export default function Aluno({ token, name, notes, workouts, last, lastWorkoutI
   const load = useCallback((id: number): Prog => {
     try { return { ...emptyProg(), ...JSON.parse(localStorage.getItem(wkey(id)) ?? '{}') }; } catch { return emptyProg(); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [sid]);
 
   // abre no treino com progresso salvo; senão no próximo da fila
   useEffect(() => {
@@ -94,13 +95,15 @@ export default function Aluno({ token, name, notes, workouts, last, lastWorkoutI
     try {
       const q = getQ();
       while (q.length) {
-        await saveSession(token, q[0]); // resposta inválida (ok:false) também sai da fila: não trava
+        const r = await saveSession(q[0]);
+        if (r.expired) return false; // sessão expirou: mantém na fila até logar de novo
+        // ok:false por dado inválido sai da fila: não trava
         q.shift(); setQ(q);
       }
       return true;
     } catch { return false; } finally { flushing.current = false; }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [sid]);
   useEffect(() => {
     flush();
     addEventListener('online', flush);
@@ -220,6 +223,7 @@ export default function Aluno({ token, name, notes, workouts, last, lastWorkoutI
       </section>
 
       <button className="big" onClick={finish} disabled={busy}>Finalizar treino</button>
+      <form action={studentLogout} style={{ textAlign: 'center', marginTop: 16 }}><button>Sair</button></form>
 
       {end > 0 && (
         <div id="timer">

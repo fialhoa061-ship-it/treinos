@@ -1,23 +1,13 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { login } from './actions';
-import { tokenFromLink } from '@/lib/util';
-
+import { login, studentLogin } from './actions';
 
 export default function LoginForm() {
   const [tab, setTab] = useState<0 | 1>(0);
   const [showPw, setShowPw] = useState(false);
   const [err, action, pending] = useActionState(login, '');
-  const [linkErr, setLinkErr] = useState('');
-
-  function openStudent(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const raw = String(new FormData(e.currentTarget).get('link'));
-    const t = tokenFromLink(raw);
-    setLinkErr(t ? '' : raw.includes('-fitapp-') ? 'Link incompleto: falta parte do código no final. Copie o endereço inteiro.' : 'Link inválido. Confira se copiou o endereço inteiro.');
-    if (t) location.href = `/aluno-fitapp-${t}`;
-  }
+  const [codeErr, codeAction, codePending] = useActionState(studentLogin, '');
 
   return (
     <main className="glass">
@@ -48,11 +38,14 @@ export default function LoginForm() {
           <button className="go" disabled={pending}>{pending ? 'Entrando…' : 'Entrar'}</button>
         </form>
       ) : (
-        <form onSubmit={openStudent}>
-          <p className="hint">Cole o link que o professor enviou para você.</p>
-          <label className="field"><input name="link" placeholder="Link do treino" aria-label="Link do treino" autoComplete="off" required /></label>
-          {linkErr && <p className="err" role="alert">{linkErr}</p>}
-          <button className="go">Abrir treino</button>
+        <form action={codeAction}>
+          <p className="hint">Digite o código de 6 números que o seu professor passou.</p>
+          {codeErr && <p className="err" role="alert">{codeErr}</p>}
+          <label className="field">
+            <input name="code" placeholder="000000" aria-label="Código de acesso" inputMode="numeric" pattern="[0-9]{6}" maxLength={6}
+              autoComplete="one-time-code" required autoFocus style={{ letterSpacing: '.45em', textAlign: 'center', fontSize: '1.4rem', paddingRight: 18 }} />
+          </label>
+          <button className="go" disabled={codePending}>{codePending ? 'Entrando…' : 'Entrar'}</button>
         </form>
       )}
     </main>
