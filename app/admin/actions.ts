@@ -29,15 +29,27 @@ async function uniqueCode(): Promise<string> {
 export async function saveStudent(f: FormData) {
   await requireAdmin();
   const id = int(f, 'id'), name = str(f, 'name', 120);
-  if (!name) return back('/admin', 'Nome obrigatório');
-  const age = num(f, 'age') === null ? null : Math.trunc(num(f, 'age')!);
+  const fail = (msg: string) => (id ? student(id, msg) : back('/admin/novo', msg));
+  if (!name) return fail('Nome obrigatório');
+
+  // valores fora da faixa estouram as colunas numeric/int do banco e derrubam a página
+  const weight = num(f, 'weight_kg');
+  if (weight !== null && !(weight > 0 && weight <= 500)) return fail('Peso inválido: use quilos, ex. 68,5');
+  let height = num(f, 'height_m');
+  if (height !== null && height > 3) height /= 100; // digitado em centímetros (ex. 165)
+  if (height !== null && !(height >= 0.5 && height <= 2.5)) return fail('Altura inválida: use metros, ex. 1,65');
+  if (height !== null) height = Math.round(height * 100) / 100;
+  const ageN = num(f, 'age');
+  const age = ageN === null ? null : Math.trunc(ageN);
+  if (age !== null && !(age >= 1 && age <= 120)) return fail('Idade inválida');
+
   const s = sql();
   let sid = id;
   if (id) {
-    await s`update students set name=${name}, weight_kg=${num(f, 'weight_kg')}, height_m=${num(f, 'height_m')}, age=${age}, goal=${str(f, 'goal', 2000)}, notes=${str(f, 'notes', 4000)} where id=${id}`;
+    await s`update students set name=${name}, weight_kg=${weight}, height_m=${height}, age=${age}, goal=${str(f, 'goal', 2000)}, notes=${str(f, 'notes', 4000)} where id=${id}`;
   } else {
     [{ id: sid }] = await rows(s`insert into students (name, weight_kg, height_m, age, goal, notes, access_code)
-      values (${name}, ${num(f, 'weight_kg')}, ${num(f, 'height_m')}, ${age}, ${str(f, 'goal', 2000)}, ${str(f, 'notes', 4000)}, ${await uniqueCode()}) returning id`);
+      values (${name}, ${weight}, ${height}, ${age}, ${str(f, 'goal', 2000)}, ${str(f, 'notes', 4000)}, ${await uniqueCode()}) returning id`);
   }
   student(sid, 'Salvo');
 }

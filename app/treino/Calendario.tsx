@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Icon from '../Icon';
 
 export type Dia = { d: string; w: string; focus: string | null }; // d = 'YYYY-MM-DD' (horário de Brasília)
 
@@ -19,6 +20,14 @@ export default function Calendario({ sessions, today }: { sessions: Dia[]; today
   const T = parse(today);
   const [off, setOff] = useState(0); // 0 = mês atual, -1 = anterior…
   const [sel, setSel] = useState<string | null>(null);
+  const ref = useRef<HTMLDetailsElement>(null);
+  // vindo de "Ver minha frequência" (tela de conclusão): abre e rola até o calendário
+  useEffect(() => {
+    if (location.hash !== '#frequencia' || !ref.current) return;
+    ref.current.open = true;
+    ref.current.scrollIntoView({ block: 'start' });
+    history.replaceState(null, '', location.pathname);
+  }, []);
 
   const byDay = new Map<string, Dia[]>();
   for (const s of sessions) (byDay.get(s.d) ?? byDay.set(s.d, []).get(s.d)!).push(s);
@@ -46,23 +55,24 @@ export default function Calendario({ sessions, today }: { sessions: Dia[]; today
   const selDia = sel ? byDay.get(sel) : null;
 
   return (
-    <details className="card cal">
+    <details className="panel cal" id="frequencia" ref={ref}>
       <summary>
-        <span>Meu calendário</span>
-        <small>{mes} {mes === 1 ? 'treino' : 'treinos'} este mês</small>
+        <span className="dot"><Icon name="calendar" size={22} /></span>
+        <span className="grow"><b>Frequência</b>
+        <small>{sessions.length} {sessions.length === 1 ? 'treino' : 'treinos'} no total{mesPassado > 0 ? ` · ${mesPassado} em ${MESES[parse(lastMonth).getUTCMonth()]}` : ''}</small></span>
+        <span className="ibtn sq"><Icon name="right" size={16} /></span>
       </summary>
 
-      <div className="stats">
-        <div><b>{semana}</b><span>esta semana</span></div>
-        <div><b>{mes}</b><span>este mês</span>{mesPassado > 0 && <em>{MESES[parse(lastMonth).getUTCMonth()].slice(0, 3)}: {mesPassado}</em>}</div>
-        <div><b>{media.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}</b><span>média/semana (4 sem.)</span></div>
-        <div><b>{sessions.length}</b><span>no total</span></div>
+      <div className="trio" style={{ marginTop: 0 }}>
+        <div><span>Esta semana</span><b>{semana}</b></div>
+        <div><span>Este mês</span><b>{mes}</b></div>
+        <div><span>Média/semana</span><b>{media.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}</b></div>
       </div>
 
       <div className="cal-nav">
-        <button type="button" aria-label="Mês anterior" disabled={!canBack} onClick={() => { setOff(off - 1); setSel(null); }}>‹</button>
+        <button type="button" className="ibtn" aria-label="Mês anterior" disabled={!canBack} onClick={() => { setOff(off - 1); setSel(null); }}><Icon name="left" size={18} /></button>
         <strong>{MESES[M.getUTCMonth()]} {M.getUTCFullYear()}</strong>
-        <button type="button" aria-label="Próximo mês" disabled={off >= 0} onClick={() => { setOff(off + 1); setSel(null); }}>›</button>
+        <button type="button" className="ibtn" aria-label="Próximo mês" disabled={off >= 0} onClick={() => { setOff(off + 1); setSel(null); }}><Icon name="right" size={18} /></button>
       </div>
 
       <div className="cal-grid" role="grid" aria-label={`Treinos de ${MESES[M.getUTCMonth()]}`}>
@@ -89,7 +99,7 @@ export default function Calendario({ sessions, today }: { sessions: Dia[]; today
       ) : (
         <p className="cal-foot">
           {doMes.length
-            ? <>{doMes.length} {doMes.length === 1 ? 'treino' : 'treinos'} em {MESES[M.getUTCMonth()]}: {porTreino.map(([w, n]) => `${w} ×${n}`).join(' · ')}</>
+            ? <>Em {MESES[M.getUTCMonth()]}: {porTreino.map(([w, n]) => `treino ${w} ×${n}`).join(' · ')}</>
             : 'Nenhum treino registrado neste mês.'}
           {doMes.length > 0 && <small> Toque num dia para ver o detalhe.</small>}
         </p>

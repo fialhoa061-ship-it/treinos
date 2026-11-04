@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Gestão de treinos de musculação',
     start_url: '/',
     display: 'standalone',
-    background_color: '#050816',
-    theme_color: '#050816',
+    background_color: '#111214',
+    theme_color: '#111214',
     lang: 'pt-BR',
     icons: [{ src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
   };

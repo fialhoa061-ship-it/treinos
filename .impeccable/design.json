@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-04T12:00:00Z",
+  "title": "Design System: Treinos",
+  "extensions": {
+    "colorMeta": {
+      "accent": { "role": "primary", "displayName": "Azul Elétrico", "canonical": "#2f6bff", "tonalRamp": ["#0a1a47", "#10287a", "#1a3eb8", "#2f6bff", "#4a80ff", "#79a3ff", "#b0c9ff", "#e3ecff"] },
+      "accent-hi": { "role": "primary", "displayName": "Azul Elétrico Aceso", "canonical": "#4a80ff", "tonalRamp": ["#0c1d4d", "#132f85", "#1f47c4", "#3466f5", "#4a80ff", "#79a3ff", "#b0c9ff", "#e3ecff"] },
+      "accent-tx": { "role": "primary", "displayName": "Azul de Leitura", "canonical": "#79a3ff", "tonalRamp": ["#0f2252", "#1a368a", "#2a52c4", "#4a80ff", "#79a3ff", "#9dbbff", "#c6d7ff", "#ebf1ff"] },
+      "accent-ink": { "role": "primary", "displayName": "Tinta sobre Azul", "canonical": "#ffffff", "tonalRamp": ["#262626", "#474747", "#6b6b6b", "#919191", "#b5b5b5", "#d6d6d6", "#ededed", "#ffffff"] },
+      "danger": { "role": "secondary", "displayName": "Coral de Alerta", "canonical": "#ff6b7d", "tonalRamp": ["#4a0e17", "#7a1726", "#b3233a", "#e8425a", "#ff6b7d", "#ff94a1", "#ffc2c9", "#ffebee"] },
+      "bg": { "role": "neutral", "displayName": "Grafite Profundo", "canonical": "#111214", "tonalRamp": ["#111214", "#1c1d21", "#25262b", "#313238", "#3c3d44", "#8e919c", "#a4a6b0", "#f5f6f8"] },
+      "s1": { "role": "neutral", "displayName": "Grafite 1", "canonical": "#1c1d21", "tonalRamp": ["#111214", "#1c1d21", "#25262b", "#313238", "#3c3d44", "#8e919c", "#a4a6b0", "#f5f6f8"] },
+      "s2": { "role": "neutral", "displayName": "Grafite 2", "canonical": "#25262b", "tonalRamp": ["#111214", "#1c1d21", "#25262b", "#313238", "#3c3d44", "#8e919c", "#a4a6b0", "#f5f6f8"] },
+      "s3": { "role": "neutral", "displayName": "Grafite 3", "canonical": "#313238", "tonalRamp": ["#111214", "#1c1d21", "#25262b", "#313238", "#3c3d44", "#8e919c", "#a4a6b0", "#f5f6f8"] },
+      "s4": { "role": "neutral", "displayName": "Grafite 4", "canonical": "#3c3d44", "tonalRamp": ["#111214", "#1c1d21", "#25262b", "#313238", "#3c3d44", "#8e919c", "#a4a6b0", "#f5f6f8"] },
+      "fg": { "role": "neutral", "displayName": "Branco Gelo", "canonical": "#f5f6f8", "tonalRamp": ["#111214", "#1c1d21", "#25262b", "#313238", "#3c3d44", "#8e919c", "#a4a6b0", "#f5f6f8"] },
+      "fg2": { "role": "neutral", "displayName": "Cinza Médio", "canonical": "#a4a6b0", "tonalRamp": ["#111214", "#1c1d21", "#25262b", "#313238", "#3c3d44", "#8e919c", "#a4a6b0", "#f5f6f8"] },
+      "fg3": { "role": "neutral", "displayName": "Cinza Baixo", "canonical": "#8e919c", "tonalRamp": ["#111214", "#1c1d21", "#25262b", "#313238", "#3c3d44", "#8e919c", "#a4a6b0", "#f5f6f8"] }
+    },
+    "typographyMeta": {
+      "numeral": { "displayName": "Numeral", "purpose": "Número grande do cartão (séries feitas), em azul de leitura; variantes no timer e no código de acesso." },
+      "headline": { "displayName": "Headline", "purpose": "Título da tela no topo e do card de conclusão." },
+      "title": { "displayName": "Title", "purpose": "Cabeçalhos de cartão, seção e exercício." },
+      "body": { "displayName": "Body", "purpose": "Texto corrido com algarismos tabulares." },
+      "label": { "displayName": "Label", "purpose": "Rótulos de campo, metadados, tags e abas." }
+    },
+    "shadows": [
+      { "name": "floating", "value": "0 10px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05)", "purpose": "Barra de abas flutuante." },
+      { "name": "floating-deep", "value": "0 14px 36px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06)", "purpose": "Timer de descanso fixo." },
+      { "name": "fab-glow", "value": "0 10px 24px rgba(47,107,255,.35), 0 0 0 6px var(--bg)", "purpose": "Botão + central, recortado da barra pelo anel do fundo." }
+    ],
+    "motion": [
+      { "name": "ease", "value": "cubic-bezier(.22,1,.36,1)", "purpose": "Easing único do app: press (.25s), barra de progresso (.6s), entradas de aviso e conclusão." },
+      { "name": "press", "value": "transform .25s var(--ease); scale(.97) botão, (.93) ícone, (.985) linha", "purpose": "Resposta tátil ao toque." },
+      { "name": "toast", "value": "opacity 0 e translate 0 -8px, .5s var(--ease)", "purpose": "Entrada de aviso e timer." },
+      { "name": "pop", "value": "opacity 0 e scale .94, .7s var(--ease)", "purpose": "Entrada do card de conclusão." },
+      { "name": "reduced-motion", "value": "animation:none; transition:none", "purpose": "Aplicado a todo .app com prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "column", "value": "480px" },
+      { "name": "floating-bar", "value": "456px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ação principal: pill azul elétrico, 48px (58px em largura total).",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Finalizar treino</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border:0;border-radius:999px;background:var(--s3,#313238);color:var(--fg,#f5f6f8);font-family:var(--font-ui,Manrope,system-ui,sans-serif);font-weight:600;font-size:.95rem;cursor:pointer;transition:background .2s,transform .25s cubic-bezier(.22,1,.36,1)}.ds-btn-primary{background:var(--accent,#2f6bff);color:var(--accent-ink,#fff)}.ds-btn-primary:hover{background:var(--accent-hi,#4a80ff)}.ds-btn:active{transform:scale(.97)}.ds-btn:focus-visible{outline:2px solid var(--accent-tx,#79a3ff);outline-offset:3px}"
+    },
+    {
+      "name": "Default Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Ação secundária: pill grafite s3, hover s4.",
+      "html": "<button class=\"ds-btn2\">Copiar código</button>",
+      "css": ".ds-btn2{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 20px;border:0;border-radius:999px;background:var(--s3,#313238);color:var(--fg,#f5f6f8);font-family:var(--font-ui,Manrope,system-ui,sans-serif);font-weight:600;font-size:.95rem;cursor:pointer;transition:background .2s,transform .25s cubic-bezier(.22,1,.36,1)}.ds-btn2:hover{background:var(--s4,#3c3d44)}.ds-btn2:active{transform:scale(.97)}.ds-btn2:focus-visible{outline:2px solid var(--accent-tx,#79a3ff);outline-offset:3px}"
+    },
+    {
+      "name": "Icon Button",
+      "kind": "button",
+      "refersTo": "icon-button",
+      "description": "Círculo 46px em s2 com ícone SVG traço 1.75.",
+      "html": "<button class=\"ds-ibtn\" aria-label=\"Voltar\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 5l-7 7 7 7\"/></svg></button>",
+      "css": ".ds-ibtn{display:grid;place-items:center;width:46px;height:46px;padding:0;border:0;border-radius:50%;background:var(--s2,#25262b);color:var(--fg,#f5f6f8);cursor:pointer;transition:background .2s,transform .25s cubic-bezier(.22,1,.36,1)}.ds-ibtn:hover{background:var(--s3,#313238)}.ds-ibtn:active{transform:scale(.93)}.ds-ibtn:focus-visible{outline:2px solid var(--accent-tx,#79a3ff);outline-offset:3px}"
+    },
+    {
+      "name": "Chips",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Seletor de treino A/B/C em pills; ativa em azul.",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip ds-on\">Treino A</button><button class=\"ds-chip\">Treino B</button><button class=\"ds-chip\">Treino C</button></div>",
+      "css": ".ds-chips{display:flex;gap:8px}.ds-chip{flex:1 0 auto;display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border:0;border-radius:999px;background:var(--s2,#25262b);color:var(--fg,#f5f6f8);font-family:var(--font-ui,Manrope,system-ui,sans-serif);font-weight:600;font-size:.95rem;cursor:pointer;transition:background .2s,color .2s}.ds-chip:hover{background:var(--s3,#313238)}.ds-chip.ds-on{background:var(--accent,#2f6bff);color:var(--accent-ink,#fff)}.ds-chip:focus-visible{outline:2px solid var(--accent-tx,#79a3ff);outline-offset:3px}"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo s2 52px, raio 18px, borda azul no foco, rótulo acima.",
+      "html": "<label class=\"ds-field\"><span>Nome do aluno</span><input class=\"ds-input\" placeholder=\"Ex.: Ana Souza\"></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:6px;font-family:var(--font-ui,Manrope,system-ui,sans-serif)}.ds-field>span{font-size:.82rem;font-weight:600;color:var(--fg2,#a4a6b0);padding-left:4px}.ds-input{width:100%;min-height:52px;padding:14px 16px;border:1.5px solid transparent;border-radius:18px;background:var(--s2,#25262b);color:var(--fg,#f5f6f8);font:inherit;font-size:16px;transition:border-color .2s,background .2s}.ds-input::placeholder{color:var(--fg3,#8e919c)}.ds-input:hover{background:var(--s3,#313238)}.ds-input:focus{outline:0;border-color:var(--accent,#2f6bff);background:var(--s2,#25262b)}"
+    },
+    {
+      "name": "Meter Card",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Cartão s1 raio 30px com numeral grande e barra de progresso azul.",
+      "html": "<section class=\"ds-panel\"><h2>Treino de hoje</h2><div class=\"ds-meter\"><p class=\"ds-big\">3<small>/18 séries</small></p><div class=\"ds-bar\"><i style=\"--p:17%\"></i></div></div></section>",
+      "css": ".ds-panel{background:var(--s1,#1c1d21);border-radius:30px;padding:20px;color:var(--fg,#f5f6f8);font-family:var(--font-ui,Manrope,system-ui,sans-serif);font-variant-numeric:tabular-nums}.ds-panel h2{margin:0 0 6px;font-size:1.05rem;font-weight:600}.ds-meter{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}.ds-big{margin:0;font-size:2.5rem;line-height:1;font-weight:700;letter-spacing:-.03em;color:var(--accent-tx,#79a3ff)}.ds-big small{font-size:1rem;font-weight:600;letter-spacing:0;color:var(--fg2,#a4a6b0)}.ds-bar{position:relative;flex:0 1 46%;height:12px;margin-bottom:6px;border-radius:999px;background:var(--s3,#313238);overflow:hidden}.ds-bar i{position:absolute;inset:0;background:var(--accent,#2f6bff);clip-path:inset(0 calc(100% - var(--p,0%)) 0 0 round 999px)}"
+    },
+    {
+      "name": "List Item",
+      "kind": "card",
+      "refersTo": "list-item",
+      "description": "Linha s2 raio 24px: avatar de iniciais, nome, metadado e chevron.",
+      "html": "<a class=\"ds-item\" href=\"#\"><span class=\"ds-avatar\">AS</span><span class=\"ds-grow\"><b>Ana Souza</b><small>3 treinos</small></span><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 5l7 7-7 7\"/></svg></a>",
+      "css": ".ds-item{display:flex;align-items:center;gap:14px;min-height:72px;padding:12px 14px 12px 12px;border-radius:24px;background:var(--s2,#25262b);color:var(--fg,#f5f6f8);text-decoration:none;font-family:var(--font-ui,Manrope,system-ui,sans-serif);transition:background .2s,transform .25s cubic-bezier(.22,1,.36,1)}.ds-item:hover{background:var(--s3,#313238)}.ds-item:active{transform:scale(.985)}.ds-item:focus-visible{outline:2px solid var(--accent-tx,#79a3ff);outline-offset:3px}.ds-avatar{display:grid;place-items:center;flex:none;width:46px;height:46px;border-radius:50%;background:var(--s3,#313238);font-weight:700}.ds-grow{flex:1;min-width:0}.ds-grow b{display:block;font-weight:700}.ds-grow small{display:block;color:var(--fg2,#a4a6b0);font-size:.84rem}.ds-item svg{color:var(--fg2,#a4a6b0)}"
+    },
+    {
+      "name": "Tab Bar",
+      "kind": "nav",
+      "refersTo": "tabbar",
+      "description": "Cápsula flutuante s1 com abas e botão + azul central elevado.",
+      "html": "<nav class=\"ds-tabbar\"><a aria-current=\"page\" href=\"#\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\"><circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6\"/></svg>Alunos</a><a class=\"ds-fab\" href=\"#\" aria-label=\"Novo aluno\"><svg width=\"28\" height=\"28\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg></a><a href=\"#\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\"><path d=\"M4 4v16h16\"/><path d=\"M7.5 15l4-4.5 3 3L20 7\"/></svg>Histórico</a></nav>",
+      "css": ".ds-tabbar{max-width:456px;margin:24px auto 0;display:grid;grid-template-columns:repeat(3,1fr);align-items:center;height:72px;padding:0 6px;border-radius:28px;background:var(--s1,#1c1d21);box-shadow:0 10px 30px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05);font-family:var(--font-ui,Manrope,system-ui,sans-serif)}.ds-tabbar a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;height:60px;color:var(--fg3,#8e919c);font-size:.7rem;font-weight:600;text-decoration:none;border-radius:18px;transition:color .2s}.ds-tabbar a:hover{color:var(--fg2,#a4a6b0)}.ds-tabbar a[aria-current=page]{color:var(--fg,#f5f6f8)}.ds-tabbar a[aria-current=page] svg{color:var(--accent-tx,#79a3ff)}.ds-tabbar a:focus-visible{outline:2px solid var(--accent-tx,#79a3ff);outline-offset:3px}.ds-tabbar .ds-fab{justify-self:center;width:60px;height:60px;border-radius:50%;background:var(--accent,#2f6bff);color:#fff;translate:0 -14px;box-shadow:0 10px 24px rgba(47,107,255,.35),0 0 0 6px var(--bg,#111214);transition:transform .25s cubic-bezier(.22,1,.36,1),background .2s}.ds-tabbar .ds-fab:hover{color:#fff;background:var(--accent-hi,#4a80ff)}.ds-tabbar .ds-fab:active{transform:scale(.94)}"
+    },
+    {
+      "name": "Set Checker",
+      "kind": "custom",
+      "description": "Marcador de série 52px: número em s3, marcado vira azul com check.",
+      "html": "<div class=\"ds-sets\"><button class=\"ds-chk\">1</button><button class=\"ds-chk ds-ok\" aria-label=\"Série 2 feita\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4.5 12.5l5 5L19.5 7\"/></svg></button></div>",
+      "css": ".ds-sets{display:flex;gap:8px}.ds-chk{display:grid;place-items:center;width:52px;height:52px;border:0;border-radius:50%;background:var(--s3,#313238);color:var(--fg,#f5f6f8);font-family:var(--font-ui,Manrope,system-ui,sans-serif);font-weight:800;font-size:1.05rem;cursor:pointer;transition:background .25s,color .25s,transform .35s cubic-bezier(.22,1,.36,1)}.ds-chk:hover{background:var(--s4,#3c3d44)}.ds-chk.ds-ok{background:var(--accent,#2f6bff);color:#fff;transform:scale(1.04)}.ds-chk:focus-visible{outline:2px solid var(--accent-tx,#79a3ff);outline-offset:3px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "O Painel de Instrumentos",
+    "overview": "O treino lido como um painel de instrumentos escuro: grafite em camadas tonais, um único azul elétrico e números grandes que se leem de relance entre uma série e outra. Cada tela se comporta como um app nativo de academia no celular: coluna única de 480px, alvos de toque de 46 a 58px, pills, cartões muito arredondados e uma barra de abas flutuante com um + azul central.\n\nA densidade é baixa e o ritmo, previsível: cartões grafite sobre fundo quase preto, linhas internas um tom acima, controles mais um tom acima. A profundidade vem do tom, não da sombra. O azul é reservado a progresso, estado ativo e ação principal; tudo o mais é neutro.\n\nO sistema recusa o \"glass\" decorativo e o painel administrativo de tabelas. A tela de login é a exceção deliberada: mantém o visual antigo (vidro líquido, azul #1a7bff) e não faz parte deste sistema.",
+    "keyCharacteristics": [
+      "Escuro, tonal, quatro degraus de superfície (s1 a s4) sobre o fundo.",
+      "Um acento só: azul elétrico em preenchimento, azul claro em texto.",
+      "Números tabulares grandes como protagonistas (séries, carga, timer, código).",
+      "Formas cheias: pills 999px e cartões 24 a 30px.",
+      "Ícones SVG próprios, traço único 1.75, cor herdada."
+    ],
+    "rules": [
+      { "name": "The One Voice Rule", "body": "Existe um acento só. Sucesso também é azul (`--ok` aponta para o azul de leitura); não há verde nem uma segunda cor de marca. Coral aparece apenas em ações destrutivas.", "section": "colors" },
+      { "name": "The Fill vs. Read Rule", "body": "Azul cheio (accent) é superfície; azul claro (accent-tx) é texto e ícone. Nunca texto em accent sobre grafite.", "section": "colors" },
+      { "name": "The Contrast Lift Rule", "body": "Com `prefers-contrast: more`, fg2, fg3 e s2 sobem de tom; novos tokens neutros devem entrar nesse bloco.", "section": "colors" },
+      { "name": "The Tabular Rule", "body": "`font-variant-numeric: tabular-nums` vale para todo o app; números que mudam nunca usam algarismos proporcionais.", "section": "typography" },
+      { "name": "The Weight Ladder Rule", "body": "Hierarquia por peso e tamanho dentro de Manrope; não introduza segunda família.", "section": "typography" },
+      { "name": "The Flat-In-Flow Rule", "body": "Nada que rola com a página tem sombra. Sombra é só para o que flutua fixo.", "section": "elevation" },
+      { "name": "The Step-Up Rule", "body": "Hover sobe um degrau de superfície (s2 para s3, s3 para s4); não use brilho, borda ou sombra para hover.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do subir um degrau de superfície por nível de aninhamento e por hover (s1, s2, s3, s4).",
+      "Do usar azul elétrico (accent) para preenchimentos e azul de leitura (accent-tx) para texto, ícones e foco.",
+      "Do manter alvos de toque de 44px no mínimo (botões 48px, ação principal 58px, marcador de série 52px).",
+      "Do desenhar novos ícones no set de `app/Icon.tsx`: 24×24, traço 1.75, pontas e junções arredondadas, `currentColor`.",
+      "Do usar pills (999px) para ações e seleções e a escala 30/24/18/12px para contêineres.",
+      "Do respeitar `prefers-reduced-motion` (sem animação nem transição) e `prefers-contrast: more`."
+    ],
+    "donts": [
+      "Don't usar vidro, `backdrop-filter`, degradês decorativos ou os tokens do login (`--ink`, `--mute`, `--blue`, `--g-*`, `--l-*`, `--spring`, bloco `:where(.lp)`) fora da tela de login.",
+      "Don't introduzir uma segunda cor de acento, verde de sucesso ou o verde-limão da referência.",
+      "Don't pôr sombra em cartões e linhas que rolam com a página.",
+      "Don't montar telas como tabela administrativa; listas são linhas arredondadas com avatar ou número e chevron.",
+      "Don't usar ícones de pacote, emoji ou glifos de texto no lugar dos ícones SVG próprios."
+    ]
+  }
+}

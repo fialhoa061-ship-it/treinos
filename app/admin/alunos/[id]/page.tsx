@@ -2,102 +2,149 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { rows, sql } from '@/lib/db';
 import { imc } from '@/lib/util';
-import { Act } from '../../ui';
+import Icon from '../../../Icon';
+import { Act, Flash, Top, initials } from '../../ui';
 import { AccessCode, ExerciseForm } from '../../Client';
+import { StudentFields } from '../../fields';
 import { deleteExercise, deleteStudent, deleteWorkout, duplicateWorkout, moveExercise, moveWorkout, newAccessCode, saveExercise, saveStudent, saveWorkout } from '../../actions';
+
+const kg = (v: unknown) => (v == null ? '—' : `${Number(v).toLocaleString('pt-BR')} kg`);
+const m = (v: unknown) => (v == null ? '—' : `${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} m`);
 
 export default async function Aluno({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ m?: string }> }) {
   const { id: raw } = await params;
-  const { m } = await searchParams;
+  const { m: msg } = await searchParams;
   const id = Number(raw);
-  if (!Number.isInteger(id)) notFound();
+  if (!Number.isInteger(id) || id < 1 || id > 2147483647) notFound();
   const s = sql();
   const [st] = await rows(s`select * from students where id=${id}`);
   if (!st) notFound();
 
-  const [workouts, exercises, others, library] = await Promise.all([
+  const [workouts, exercises, others, library, [{ sessoes }]] = await Promise.all([
     rows(s`select * from workouts where student_id=${id} order by position, id`),
     rows(s`select e.* from workout_exercises e join workouts w on w.id=e.workout_id where w.student_id=${id} order by e.position, e.id`),
     rows(s`select id, name from students where id<>${id} order by name`),
     rows(s`select name, video_url, notes from exercise_library order by name`),
+    rows(s`select count(*)::int as sessoes from sessions where student_id=${id}`),
   ]);
   const bmi = imc(st.weight_kg, st.height_m);
 
   return (
     <>
-      {m && <p className="flash">{m}</p>}
-      <h1>{st.name} {bmi && <small>IMC {bmi}</small>}</h1>
+      <Flash m={msg} />
+      <Top title={st.name} sub={[bmi && `IMC ${bmi}`, st.age && `${st.age} anos`].filter(Boolean).join(' · ') || 'Aluno'} back="/admin">
+        <span className="avatar lg">{initials(st.name)}</span>
+      </Top>
 
-      <div className="card">
-        <AccessCode code={st.access_code} name={st.name} />
-        <div className="row" style={{ marginTop: 8 }}>
-          <Act action={newAccessCode} fields={{ id }} label="Gerar novo código" confirm="O código antigo deixará de funcionar e o aluno será desconectado. Continuar?" />
-          <Link className="btn" href={`/admin/historico/${id}`}>Histórico de cargas</Link>
+      <section className="panel">
+        {st.goal ? <p>{st.goal}</p> : <p className="muted">Sem objetivo cadastrado.</p>}
+        <div className="trio">
+          <div><span>Peso</span><b>{kg(st.weight_kg)}</b></div>
+          <div><span>Altura</span><b>{m(st.height_m)}</b></div>
+          <div><span>Treinos feitos</span><b>{sessoes}</b></div>
         </div>
-      </div>
-
-      <form action={saveStudent} className="card">
-        <input type="hidden" name="id" value={id} />
-        <div className="row">
-          <label>Nome <input name="name" required defaultValue={st.name} /></label>
-          <label>Peso (kg) <input name="weight_kg" inputMode="decimal" defaultValue={st.weight_kg ?? ''} /></label>
-          <label>Altura (m) <input name="height_m" inputMode="decimal" defaultValue={st.height_m ?? ''} /></label>
-          <label>Idade <input name="age" inputMode="numeric" defaultValue={st.age ?? ''} /></label>
-        </div>
-        <label>Objetivo <textarea name="goal" rows={2} defaultValue={st.goal ?? ''} /></label>
-        <label>Observações / limitações <textarea name="notes" rows={4} defaultValue={st.notes ?? ''} /></label>
-        <button>Salvar aluno</button>
-      </form>
-
-      <h2>Treinos</h2>
-      {workouts.map(w => (
-        <div className="card" key={w.id}>
-          <form action={saveWorkout} className="row">
-            <input type="hidden" name="id" value={w.id} /><input type="hidden" name="student_id" value={id} />
-            <label>Treino <input name="name" required defaultValue={w.name} /></label>
-            <label>Foco <input name="focus" defaultValue={w.focus ?? ''} /></label>
-            <button>Salvar</button>
+        <Link className="opt" href={`/admin/historico/${id}`}>
+          <span>Histórico de cargas</span><span className="ibtn sq"><Icon name="right" size={16} /></span>
+        </Link>
+        <details>
+          <summary className="opt"><span>Editar dados do aluno</span><span className="ibtn sq"><Icon name="right" size={16} /></span></summary>
+          <form action={saveStudent} className="form" style={{ paddingTop: 4 }}>
+            <input type="hidden" name="id" value={id} />
+            <StudentFields st={st} />
+            <button className="btn primary">Salvar alterações</button>
           </form>
-          <div className="row" style={{ margin: '8px 0' }}>
-            <Act action={moveWorkout} fields={{ id: w.id, student_id: id, dir: -1 }} label="↑" />
-            <Act action={moveWorkout} fields={{ id: w.id, student_id: id, dir: 1 }} label="↓" />
-            <Act action={deleteWorkout} fields={{ id: w.id, student_id: id }} label="Excluir treino" cls="danger" confirm="Excluir treino e seu histórico?" />
-            {others.length > 0 && (
-              <form action={duplicateWorkout} className="inline row">
-                <input type="hidden" name="id" value={w.id} />
-                <select name="to_student" aria-label="Duplicar para">{others.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}</select>
-                <button>Duplicar para…</button>
-              </form>
-            )}
-          </div>
+        </details>
+      </section>
 
-          {exercises.filter(e => e.workout_id === w.id).map((x, i) => (
-            <details className="card" key={x.id}>
-              <summary><b>{i + 1}.</b> {x.name} — {x.sets} × {x.reps} · {x.rest}</summary>
-              <ExerciseForm action={saveExercise} workoutId={w.id} ex={x} label="Salvar" />
-              <div className="row" style={{ marginTop: 8 }}>
-                <Act action={moveExercise} fields={{ id: x.id, workout_id: w.id, dir: -1 }} label="↑" />
-                <Act action={moveExercise} fields={{ id: x.id, workout_id: w.id, dir: 1 }} label="↓" />
-                <Act action={deleteExercise} fields={{ id: x.id, workout_id: w.id }} label="Excluir" cls="danger" confirm="Excluir exercício?" />
+      <AccessCode code={st.access_code} name={st.name}
+        regenerate={<Act action={newAccessCode} fields={{ id }} cls="btn soft"
+          label={<><Icon name="refresh" size={18} />{st.access_code ? 'Novo código' : 'Gerar código'}</>}
+          confirm={st.access_code ? 'O código antigo deixará de funcionar e o aluno será desconectado. Continuar?' : undefined} />} />
+
+      <div className="section-t"><h2>Treinos</h2><span>{workouts.length} {workouts.length === 1 ? 'treino' : 'treinos'}</span></div>
+
+      {workouts.map(w => {
+        const exs = exercises.filter(e => e.workout_id === w.id);
+        return (
+          <section className="panel tight wo" key={w.id} aria-label={`Treino ${w.name}`}>
+            <div className="wo-h">
+              <span className="num">{w.name}</span>
+              <div className="grow">
+                <h3>{w.focus || `Treino ${w.name}`}</h3>
+                <small>{exs.length} {exs.length === 1 ? 'exercício' : 'exercícios'} · {exs.reduce((a, x) => a + Number(x.sets), 0)} séries</small>
+              </div>
+              <div className="tools">
+                <Act action={moveWorkout} fields={{ id: w.id, student_id: id, dir: -1 }} cls="ibtn sq" title="Mover para cima" label={<Icon name="up" size={16} />} />
+                <Act action={moveWorkout} fields={{ id: w.id, student_id: id, dir: 1 }} cls="ibtn sq" title="Mover para baixo" label={<Icon name="down" size={16} />} />
+              </div>
+            </div>
+
+            <div className="list">
+              {exs.map((x, i) => (
+                <details className="exr" key={x.id}>
+                  <summary>
+                    <span className="num">{i + 1}</span>
+                    <span className="grow"><b>{x.name}</b><small>{x.sets} × {x.reps} · descanso {x.rest}</small></span>
+                    <span className="ibtn sq"><Icon name="right" size={16} /></span>
+                  </summary>
+                  <div className="body">
+                    <ExerciseForm action={saveExercise} workoutId={w.id} ex={x} label="Salvar exercício" />
+                    <div className="actions">
+                      <Act action={moveExercise} fields={{ id: x.id, workout_id: w.id, dir: -1 }} cls="btn sm" label={<><Icon name="up" size={16} />Subir</>} />
+                      <Act action={moveExercise} fields={{ id: x.id, workout_id: w.id, dir: 1 }} cls="btn sm" label={<><Icon name="down" size={16} />Descer</>} />
+                      <Act action={deleteExercise} fields={{ id: x.id, workout_id: w.id }} cls="btn sm danger" label={<><Icon name="trash" size={16} />Excluir</>} confirm={`Excluir “${x.name}”?`} />
+                    </div>
+                  </div>
+                </details>
+              ))}
+              <details className="add">
+                <summary><Icon name="plus" size={18} />Adicionar exercício</summary>
+                <div className="body"><ExerciseForm action={saveExercise} workoutId={w.id} library={library as never} label="Adicionar ao treino" /></div>
+              </details>
+            </div>
+
+            <details>
+              <summary className="opt"><span>Editar, duplicar ou excluir treino</span><span className="ibtn sq"><Icon name="right" size={16} /></span></summary>
+              <div className="form" style={{ paddingBottom: 6 }}>
+                <form action={saveWorkout} className="form">
+                  <input type="hidden" name="id" value={w.id} /><input type="hidden" name="student_id" value={id} />
+                  <div className="grid2" style={{ gridTemplateColumns: '1fr 2fr' }}>
+                    <label className="field"><span>Treino</span><input name="name" required maxLength={20} defaultValue={w.name} /></label>
+                    <label className="field"><span>Foco</span><input name="focus" placeholder="Ex.: peito e tríceps" defaultValue={w.focus ?? ''} /></label>
+                  </div>
+                  <button className="btn">Salvar treino</button>
+                </form>
+                {others.length > 0 && (
+                  <form action={duplicateWorkout} className="form">
+                    <input type="hidden" name="id" value={w.id} />
+                    <label className="field"><span>Duplicar para outro aluno</span>
+                      <select name="to_student">{others.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}</select>
+                    </label>
+                    <button className="btn"><Icon name="copyPlus" size={18} />Duplicar treino {w.name}</button>
+                  </form>
+                )}
+                <Act action={deleteWorkout} fields={{ id: w.id, student_id: id }} cls="btn danger" label={<><Icon name="trash" size={18} />Excluir treino {w.name}</>} confirm={`Excluir o treino ${w.name} e o histórico dele?`} />
               </div>
             </details>
-          ))}
+          </section>
+        );
+      })}
 
-          <details>
-            <summary>+ Adicionar exercício</summary>
-            <ExerciseForm action={saveExercise} workoutId={w.id} library={library as never} label="Adicionar" />
-          </details>
+      <details className="add">
+        <summary><Icon name="plus" size={18} />Novo treino</summary>
+        <div className="body">
+          <form action={saveWorkout} className="form">
+            <input type="hidden" name="student_id" value={id} />
+            <div className="grid2" style={{ gridTemplateColumns: '1fr 2fr' }}>
+              <label className="field"><span>Nome</span><input name="name" required maxLength={20} placeholder={String.fromCharCode(65 + Math.min(workouts.length, 25))} /></label>
+              <label className="field"><span>Foco</span><input name="focus" placeholder="Ex.: pernas" /></label>
+            </div>
+            <button className="btn primary">Criar treino</button>
+          </form>
         </div>
-      ))}
+      </details>
 
-      <form action={saveWorkout} className="card row">
-        <input type="hidden" name="student_id" value={id} />
-        <label>Novo treino (ex.: E) <input name="name" required /></label>
-        <label>Foco <input name="focus" /></label>
-        <button>Criar treino</button>
-      </form>
-
-      <Act action={deleteStudent} fields={{ id }} label="Excluir aluno" cls="danger" confirm="Excluir aluno e todo o histórico?" />
+      <Act action={deleteStudent} fields={{ id }} cls="btn danger block" label={<><Icon name="trash" size={18} />Excluir aluno</>} confirm={`Excluir ${st.name} e todo o histórico?`} />
     </>
   );
 }

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { saveSession, type Payload } from './actions';
 import { studentLogout } from '../login/actions';
 import Calendario, { type Dia } from './Calendario';
+import Icon from '../Icon';
 
 type Ex = { id: number; name: string; sets: number; reps: string; rest: string; notes: string | null; video_url: string | null };
 type Workout = { id: number; name: string; focus: string | null; exercises: Ex[] };
@@ -134,69 +135,108 @@ export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId,
     persist({ ...prog, w: { ...prog.w, [k]: v ? String(v) : '' } });
   }
 
-  if (!workouts.length) return <main><p>Nenhum treino cadastrado ainda.</p></main>;
-  if (summary) {
+  const first = name.trim().split(/\s+/)[0] || name;
+  const ini = name.trim().split(/\s+/).filter(Boolean).map(w => w[0]).filter((_, i, a) => i === 0 || i === a.length - 1).join('').toUpperCase();
+
+  if (!workouts.length) {
     return (
-      <main>
-        <header><h1>Treino {summary.name} concluído 💪</h1></header>
-        <div className="card">
-          <p>{summary.sets} séries registradas</p>
-          {summary.queued && <p className="note">Sem conexão: o treino ficou salvo no celular e será enviado quando voltar a internet.</p>}
-          <p>Volume total: {Math.round(summary.vol)} kg</p>
+      <main className="screen">
+        <Header first={first} ini={ini} sub="Seu treino ainda está sendo montado" />
+        <div className="panel empty">
+          <span className="dot"><Icon name="dumbbell" size={28} /></span>
+          <h2>Nenhum treino ainda</h2>
+          <p>Assim que o seu professor cadastrar os treinos, eles aparecem aqui.</p>
         </div>
-        <button className="big" onClick={() => location.reload()}>Voltar</button>
       </main>
     );
   }
-  if (!W || !ready) return <main><p className="muted">Carregando…</p></main>;
+  if (!W || !ready) return <main className="screen"><p className="muted" role="status">Carregando…</p></main>;
+
+  const total = W.exercises.reduce((a, x) => a + Number(x.sets), 0);
+  const feitas = W.exercises.reduce((a, x) => a + Array.from({ length: x.sets }, (_, i) => prog.done[`${x.id}-${i + 1}`]).filter(Boolean).length, 0);
+  const pct = total ? Math.round((feitas / total) * 100) : 0;
 
   return (
-    <main>
-      <header><span className="hi">Bom treino</span><h1>Olá, {name}</h1></header>
-      {notes && <details className="notes"><summary>Orientações gerais</summary><p>{notes}</p></details>}
-      <Calendario sessions={sessions} today={today} />
+    <>
+    <main className="screen" inert={!!summary}>
+      <Header first={first} ini={ini} sub={feitas ? 'Bora terminar esse treino' : 'Vamos começar o treino de hoje'} />
 
-      <nav className="tabs">
+      <section className="panel today" aria-label="Progresso do treino">
+        <div className="label">
+          <h2>{W.id === nextId ? 'Treino de hoje' : `Treino ${W.name}`}</h2>
+          {W.id === lastWorkoutId && <span className="tag">feito por último</span>}
+        </div>
+        <div className="meter">
+          <p className="big">{feitas}<small> / {total} séries</small></p>
+          <div className="bar-w">
+            <span>{pct}%</span>
+            <div className="bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Séries feitas"><i style={{ "--p": `${pct}%` } as React.CSSProperties} /></div>
+          </div>
+        </div>
+      </section>
+
+      <nav className="chips" aria-label="Treinos">
         {workouts.map(w => (
-          <button key={w.id} className={w.id === wid ? 'on' : ''} onClick={() => { setWid(w.id); setProg(load(w.id)); }}>
-            {w.name}
-            {w.id === nextId && <small>próximo</small>}
-            {w.id === lastWorkoutId && <small>último</small>}
+          <button key={w.id} type="button" className={`chip ${w.id === wid ? 'on' : ''}`} aria-pressed={w.id === wid} onClick={() => { setWid(w.id); setProg(load(w.id)); }}>
+            Treino {w.name}
           </button>
         ))}
       </nav>
 
-      <div className="hero">
-        <small>{W.id === nextId ? 'Treino de hoje' : `Treino ${W.name}`}</small>
+      <section className="panel wk">
         <h2>{W.focus || `Treino ${W.name}`}</h2>
-        <div className="pills"><span>{W.exercises.length} exercícios</span><span>{W.exercises.reduce((a, x) => a + Number(x.sets), 0)} séries</span></div>
-      </div>
+        <div className="trio">
+          <div><span>Exercícios</span><b>{W.exercises.length}</b></div>
+          <div><span>Séries</span><b>{total}</b></div>
+          <div><span>Concluído</span><b>{pct}%</b></div>
+        </div>
+        {notes && (
+          <details>
+            <summary className="opt"><span>Orientações do professor</span><span className="ibtn sq"><Icon name="right" size={16} /></span></summary>
+            <p>{notes}</p>
+          </details>
+        )}
+      </section>
 
-      <section>
-        {W.exercises.map((ex, idx) => {
-          const ls = last[ex.id];
-          const top = repsTop(ex.reps);
-          const up = !!ls && !!top && ls.length >= ex.sets && ls.every(s => (s.r ?? 0) >= top);
-          const v = ex.video_url ? embed(ex.video_url) : null;
-          return (
-            <article className="card" key={ex.id}>
-              <h2><b>{idx + 1}</b> {ex.name}{up && <span className="badge">Subir carga (+1–2 kg)</span>}</h2>
-              <p className="meta"><span>{ex.sets} × {ex.reps}</span><span>descanso {ex.rest}</span></p>
-              {ex.notes && <p className="note">{ex.notes}</p>}
-              {ex.video_url ? (
-                videos[ex.id] ? (
-                  <div className="vbox">
-                    {v?.t === 'video' ? <video src={v.src} controls autoPlay playsInline />
-                      : <iframe src={v?.src} allow="autoplay; encrypted-media; fullscreen" allowFullScreen />}
-                  </div>
-                ) : (
-                  <button type="button" className="vid" onClick={() => v ? setVideos({ ...videos, [ex.id]: true }) : window.open(ex.video_url!, '_blank', 'noopener')}>▶ Ver execução</button>
-                )
-              ) : (
-                <a className="yt" target="_blank" rel="noopener" href={`https://www.youtube.com/results?search_query=${encodeURIComponent('execução ' + ex.name)}`}>Buscar execução no YouTube</a>
-              )}
+      <Calendario sessions={sessions} today={today} />
 
-              <div className="cols"><span>Série</span><span>Carga (kg)</span><span>Reps</span></div>
+      <div className="section-t"><h2>Exercícios</h2><span>{W.exercises.length} · {total} séries</span></div>
+
+      {W.exercises.map((ex, idx) => {
+        const ls = last[ex.id];
+        const top = repsTop(ex.reps);
+        const up = !!ls && !!top && ls.length >= ex.sets && ls.every(s => (s.r ?? 0) >= top);
+        const v = ex.video_url ? embed(ex.video_url) : null;
+        const exDone = Array.from({ length: ex.sets }, (_, i) => prog.done[`${ex.id}-${i + 1}`]).every(Boolean);
+        return (
+          <article className="panel tight ex" key={ex.id}>
+            <div className="ex-h">
+              <span className={`num ${exDone ? 'ok' : ''}`}>{exDone ? <Icon name="check" size={22} /> : idx + 1}</span>
+              <div className="grow">
+                <h3>{ex.name}</h3>
+                <div className="tags"><span className="tag blue">{ex.sets} × {ex.reps}</span><span className="tag"><Icon name="clock" size={14} />{ex.rest}</span></div>
+              </div>
+            </div>
+            {up && <p className="up"><Icon name="chart" size={18} />Hora de subir a carga: +1 a 2 kg</p>}
+            {ex.notes && <p className="note">{ex.notes}</p>}
+
+            {ex.video_url && videos[ex.id] ? (
+              <div className="vbox">
+                {v?.t === 'video' ? <video src={v.src} controls autoPlay playsInline />
+                  : <iframe src={v?.src} title={`Execução: ${ex.name}`} allow="autoplay; encrypted-media; fullscreen" allowFullScreen />}
+              </div>
+            ) : ex.video_url ? (
+              <button type="button" className="media" onClick={() => v ? setVideos({ ...videos, [ex.id]: true }) : window.open(ex.video_url!, '_blank', 'noopener')}>
+                <span className="dot"><Icon name="play" size={18} /></span><span className="grow">Ver execução</span><span className="ibtn sq"><Icon name="right" size={16} /></span>
+              </button>
+            ) : (
+              <a className="media" target="_blank" rel="noopener" href={`https://www.youtube.com/results?search_query=${encodeURIComponent('execução ' + ex.name)}`}>
+                <span className="dot"><Icon name="search" size={18} /></span><span className="grow">Buscar execução no YouTube</span><span className="ibtn sq"><Icon name="right" size={16} /></span>
+              </a>
+            )}
+
+            <div className="sets">
+              <div className="cols" aria-hidden="true"><span>Série</span><span>Carga (kg)</span><span>Reps</span></div>
               {Array.from({ length: ex.sets }, (_, i) => i + 1).map(n => {
                 const k = `${ex.id}-${n}`, prev = ls?.find(s => s.n === n);
                 const phW = prev && prev.w !== null ? String(prev.w) : '0';
@@ -204,36 +244,97 @@ export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId,
                   <div className={`set ${prog.done[k] ? 'ok' : ''}`} key={k}>
                     <label className="chk">
                       <input type="checkbox" aria-label={`Série ${n} feita`} checked={!!prog.done[k]}
-                        onChange={e => { persist({ ...prog, done: { ...prog.done, [k]: e.target.checked } }); if (e.target.checked) setEnd(Date.now() + restSecs(ex.rest) * 1000); }} />
-                      <span>{n}</span>
+                        onChange={e => {
+                          const on = e.target.checked;
+                          // ao marcar, assume a carga/reps mostradas (da última vez) se o aluno não digitou: o registro bate com a tela
+                          const w = on && !prog.w[k] && prev?.w != null ? { ...prog.w, [k]: String(prev.w) } : prog.w;
+                          const r = on && !prog.r[k] && prev?.r != null ? { ...prog.r, [k]: String(prev.r) } : prog.r;
+                          persist({ done: { ...prog.done, [k]: on }, w, r });
+                          if (on) setEnd(Date.now() + restSecs(ex.rest) * 1000);
+                        }} />
+                      <span><b>{n}</b><Icon name="check" size={22} /></span>
                     </label>
                     <div className="load">
-                      <button type="button" className="step" aria-label="Diminuir 1 kg" onClick={() => step(k, -1, phW)}>−</button>
+                      <button type="button" className="step" aria-label="Diminuir 1 kg" onClick={() => step(k, -1, phW)}><Icon name="minus" size={18} /></button>
                       <input type="text" inputMode="decimal" autoComplete="off" aria-label={`Carga em kg, série ${n}`} placeholder={phW} value={prog.w[k] ?? ''}
                         onChange={e => persist({ ...prog, w: { ...prog.w, [k]: e.target.value.replace(',', '.').replace(/[^\d.]/g, '').replace(/^(\d*\.?\d*).*$/, '$1').slice(0, 6) } })} />
-                      <button type="button" className="step" aria-label="Aumentar 1 kg" onClick={() => step(k, 1, phW)}>+</button>
+                      <button type="button" className="step" aria-label="Aumentar 1 kg" onClick={() => step(k, 1, phW)}><Icon name="plus" size={18} /></button>
                     </div>
                     <input type="text" inputMode="numeric" autoComplete="off" className="reps" aria-label={`Repetições, série ${n}`} placeholder={prev && prev.r !== null ? String(prev.r) : '0'}
                       value={prog.r[k] ?? ''} onChange={e => persist({ ...prog, r: { ...prog.r, [k]: e.target.value.replace(/\D/g, '').slice(0, 3) } })} />
                   </div>
                 );
               })}
-              {ls && <p className="last">Última vez: {ls.map(s => `${s.w ?? '-'} kg × ${s.r ?? '-'}`).join(' · ')}</p>}
-            </article>
-          );
-        })}
-      </section>
+            </div>
+            {ls && <p className="last"><Icon name="clock" size={16} /><span>Última vez: {ls.map(s => `${s.w ?? '–'} kg × ${s.r ?? '–'}`).join(' · ')}</span></p>}
+          </article>
+        );
+      })}
 
-      <button className="big" onClick={finish} disabled={busy}>Finalizar treino</button>
-      <form action={studentLogout} style={{ textAlign: 'center', marginTop: 16 }}><button>Sair</button></form>
+      <button className="btn primary block" onClick={finish} disabled={busy}>{busy ? 'Enviando…' : <><Icon name="check" size={20} />Finalizar treino</>}</button>
 
       {end > 0 && (
-        <div id="timer">
-          <span id="tleft">{Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}</span>
-          <button id="tplus" type="button" onClick={() => setEnd(e => e + 15000)}>+15 s</button>
-          <button id="tskip" type="button" onClick={() => setEnd(0)}>Pular</button>
+        <div id="timer" role="timer" aria-live="off">
+          <span className="t"><small>Descanso</small><span id="tleft">{Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}</span></span>
+          <button className="btn primary" type="button" onClick={() => setEnd(e => e + 15000)}>+15 s</button>
+          <button className="btn" type="button" onClick={() => setEnd(0)}>Pular</button>
         </div>
       )}
     </main>
+    {summary && <Concluido {...summary} />}
+    </>
+  );
+}
+
+function Header({ first, ini, sub }: { first: string; ini: string; sub: string }) {
+  return (
+    <header className="top">
+      <span className="avatar on" aria-hidden="true">{ini}</span>
+      <div className="grow"><h1>Olá, {first}!</h1><p>{sub}</p></div>
+      <form action={studentLogout}><button className="ibtn" aria-label="Sair" title="Sair"><Icon name="logout" /></button></form>
+    </header>
+  );
+}
+
+/** Tela de treino concluído: o treino fica desfocado ao fundo e um card central celebra. */
+function Concluido({ name, sets, vol, queued }: { name: string; sets: number; vol: number; queued: boolean }) {
+  const kg = Math.round(vol);
+  const fechar = () => location.reload();
+  const frequencia = () => { location.hash = 'frequencia'; location.reload(); };
+  return (
+    <div className="finish" role="dialog" aria-modal="true" aria-labelledby="fin-t" aria-describedby="fin-d">
+      <div className="finish-mid">
+        <div className="finish-card">
+          <div className="seal2" aria-hidden="true">
+            <svg className="confetti" viewBox="0 0 220 220">
+              <path className="c c1" d="M52 46l5 5-5 5-5-5z" />
+              <path className="c c2" d="M168 52l2.5 6.5L177 61l-6.5 2.5L168 70l-2.5-6.5L159 61l6.5-2.5z" />
+              <path className="c c3 dash" d="M30 92l16-5" />
+              <circle className="c c4" cx="36" cy="132" r="3.5" />
+              <path className="c c5" d="M181 132l4.5 4.5-4.5 4.5-4.5-4.5z" />
+              <path className="c c6 dash" d="M168 176l14 6" />
+              <circle className="c c7" cx="70" cy="184" r="3.5" />
+              <path className="c c8" d="M116 182l3 7.5 7.5 3-7.5 3-3 7.5-3-7.5-7.5-3 7.5-3z" />
+              <path className="c c9 dash" d="M112 20l-2 14" />
+              <circle className="c c10" cx="192" cy="98" r="2.5" />
+            </svg>
+            <span className="seal2-core">
+              <svg viewBox="0 0 24 24" width="46" height="46" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                <path className="tick" d="M5 12.5l4.5 4.5L19 7.5" />
+              </svg>
+            </span>
+          </div>
+          <h1 id="fin-t">Treino {name} concluído</h1>
+          <p id="fin-d">
+            {sets} {sets === 1 ? 'série registrada' : 'séries registradas'}{kg > 0 && <> · {kg.toLocaleString('pt-BR')} kg levantados</>}
+          </p>
+          {queued && <p className="finish-q"><Icon name="clock" size={16} />Envio quando a internet voltar</p>}
+        </div>
+      </div>
+      <div className="finish-foot">
+        <button type="button" className="link" onClick={frequencia}>Ver minha frequência</button>
+        <button type="button" className="btn block finish-close" autoFocus onClick={fechar}>Fechar</button>
+      </div>
+    </div>
   );
 }

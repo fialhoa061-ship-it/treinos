@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from 'next';
+import { Manrope } from 'next/font/google';
 import './globals.css';
 import Intro from './Intro';
+
+const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', display: 'swap' });
 
 export const metadata: Metadata = {
   title: 'Treinos',
@@ -8,11 +11,11 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: 'Treinos', statusBarStyle: 'black-translucent' },
 };
 
-export const viewport: Viewport = { themeColor: '#050816', width: 'device-width', initialScale: 1 };
+export const viewport: Viewport = { themeColor: '#111214', width: 'device-width', initialScale: 1 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang="pt-BR" className={manrope.variable} suppressHydrationWarning>
       <body>
         {/* decide antes da pintura: abertura só 1x por sessão e nunca com "reduzir movimento" */}
         <script dangerouslySetInnerHTML={{ __html: "try{if(sessionStorage.getItem('intro')||matchMedia('(prefers-reduced-motion:reduce)').matches)document.documentElement.dataset.intro='off'}catch(e){}" }} />
@@ -25,7 +28,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <feDisplacementMap in="SourceGraphic" in2="soft" scale="26" xChannelSelector="R" yChannelSelector="G" />
           </filter>
         </svg>
-        <div className="ambient" aria-hidden="true"><i /><i /><i /><i /><i /></div>
         {children}
       </body>
     </html>

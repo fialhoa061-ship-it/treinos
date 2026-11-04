@@ -21,8 +21,10 @@ export async function saveSession(p: Payload): Promise<{ ok: boolean; expired?: 
   for (const l of p.logs ?? []) {
     const we = Number(l.we_id), n = Number(l.set);
     if (!valid.has(we) || !(n >= 1 && n <= 20)) continue;
-    let w = l.weight === '' || l.weight == null ? null : Math.round(Number(l.weight) * 100) / 100;
-    let r = l.reps === '' || l.reps == null ? null : Math.trunc(Number(l.reps));
+    // carga digitada com vírgula ("22,5") virava NaN e era descartada
+    const ws = String(l.weight ?? '').trim().replace(',', '.'), rs = String(l.reps ?? '').trim();
+    let w = ws === '' ? null : Math.round(Number(ws) * 100) / 100;
+    let r = rs === '' ? null : Math.trunc(Number(rs));
     if (w !== null && !(w >= 0 && w <= 2000)) w = null;
     if (r !== null && !(r >= 0 && r <= 999)) r = null;
     seen.set(`${we}-${n}`, { we, n, w, r });

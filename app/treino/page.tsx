@@ -41,6 +41,6 @@ export default async function TreinoPage() {
     rows(s`select to_char(now() at time zone 'America/Sao_Paulo', 'YYYY-MM-DD') as today`),
   ]);
 
-  return <Aluno sid={st.id} name={st.name} notes={st.notes} workouts={workouts as never} last={last} lastWorkoutId={lw?.workout_id ?? null}
-    sessions={days as never} today={today} />;
+  return <div className="app"><Aluno sid={st.id} name={st.name} notes={st.notes} workouts={workouts as never} last={last} lastWorkoutId={lw?.workout_id ?? null}
+    sessions={days as never} today={today} /></div>;
 }
