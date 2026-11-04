@@ -384,3 +384,24 @@ html[data-intro=off] .intro{display:none}
 @keyframes fin-tick{from{stroke-dashoffset:24}}
 @keyframes fin-pop{from{opacity:0;scale:.2;translate:0 6px}}
 @media (prefers-reduced-motion:reduce){.finish,.finish *{animation:none!important}}
+
+/* ---------- biblioteca por categoria (página e seletor) ---------- */
+.chip.sm{min-height:36px;padding:0 14px;font-size:.84rem;flex:none}
+.chip.sm small{font-size:.72rem;font-weight:700;color:var(--fg3);margin-left:2px}
+.chip.sm.on small{color:rgba(255,255,255,.85)}
+.lib-tools{display:flex;flex-direction:column;gap:10px}
+.lib-tools .search{background:var(--s2)}
+.lib-groups{display:flex;flex-direction:column;gap:6px}
+.lib-groups [hidden]{display:none!important}
+.lib-group .section-t{margin-top:16px;margin-bottom:10px}
+.picker-cats{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.picker-cats::-webkit-scrollbar{display:none}
+.picker-cats .chip:not(.on){background:var(--s3)}
+.picker-cats .chip:not(.on):hover{background:var(--s4)}
+.picker-l{display:block}
+.picker-l ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.picker-gh{position:sticky;top:0;z-index:1;display:flex;justify-content:space-between;margin:0;padding:10px 14px 6px;background:var(--s2);
+  font-size:.74rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-tx)}
+.picker-gh span{color:var(--fg3)}
+.exr .picker-gh{background:var(--s3)}
+.picker-l .none{margin:0}

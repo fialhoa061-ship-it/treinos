@@ -24,8 +24,10 @@ create table if not exists exercise_library (
   id serial primary key,
   name text unique not null,
   video_url text,
-  notes text
+  notes text,
+  category text
 );
+alter table exercise_library add column if not exists category text;
 create table if not exists workout_exercises (
   id serial primary key,
   workout_id int not null references workouts(id) on delete cascade,

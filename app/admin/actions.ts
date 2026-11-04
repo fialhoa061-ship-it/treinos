@@ -154,10 +154,10 @@ export async function saveLibrary(f: FormData) {
   await requireAdmin();
   const id = int(f, 'id'), name = str(f, 'name', 150);
   if (!name) return back('/admin/biblioteca', 'Nome obrigatório');
-  const s = sql();
+  const s = sql(), cat = str(f, 'category', 60) || null;
   try {
-    if (id) await s`update exercise_library set name=${name}, video_url=${url(f)}, notes=${str(f, 'notes', 2000) || null} where id=${id}`;
-    else await s`insert into exercise_library (name, video_url, notes) values (${name}, ${url(f)}, ${str(f, 'notes', 2000) || null})`;
+    if (id) await s`update exercise_library set name=${name}, video_url=${url(f)}, notes=${str(f, 'notes', 2000) || null}, category=${cat} where id=${id}`;
+    else await s`insert into exercise_library (name, video_url, notes, category) values (${name}, ${url(f)}, ${str(f, 'notes', 2000) || null}, ${cat})`;
   } catch { return back('/admin/biblioteca', 'Já existe exercício com esse nome'); }
   back('/admin/biblioteca', 'Salvo');
 }

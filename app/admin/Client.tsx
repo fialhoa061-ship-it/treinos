@@ -65,7 +65,7 @@ export function AccessCode({ code, name, regenerate }: { code: string | null; na
   );
 }
 
-type Lib = { name: string; video_url: string | null; notes: string | null };
+type Lib = { name: string; video_url: string | null; notes: string | null; category?: string | null };
 type Ex = { id?: number; name?: string; sets?: number; reps?: string; rest?: string; notes?: string | null; video_url?: string | null };
 
 /** Formulário de exercício; no modo "novo" permite preencher a partir da biblioteca. */
@@ -114,19 +114,24 @@ export function ExerciseForm({ action, workoutId, ex = {}, library, label }: {
 // busca sem acento e sem diferença de maiúsculas: "bulgaro" acha "Búlgaro"
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
-/** Seletor da biblioteca: busca + lista rolável; ao escolher, preenche o formulário e mostra o escolhido. */
+/** Seletor da biblioteca: busca + filtro por categoria + lista agrupada; ao escolher, preenche o formulário. */
 function LibraryPicker({ library, onPick }: { library: Lib[]; onPick: (l: Lib) => void }) {
   const [q, setQ] = useState('');
+  const [cat, setCat] = useState('');
   const [open, setOpen] = useState(false);
   const [picked, setPicked] = useState<Lib | null>(null);
-  const list = q ? library.filter(l => norm(l.name).includes(norm(q.trim()))) : library;
+  const cats = [...new Set(library.map(l => l.category || 'Sem categoria'))];
+  const nq = norm(q.trim());
+  const list = library.filter(l => (!cat || (l.category || 'Sem categoria') === cat) && (!nq || norm(`${l.name} ${l.category ?? ''}`).includes(nq)));
+  const groups = new Map<string, Lib[]>();
+  for (const l of list) { const k = l.category || 'Sem categoria'; (groups.get(k) ?? groups.set(k, []).get(k)!).push(l); }
   const choose = (l: Lib) => { onPick(l); setPicked(l); setOpen(false); setQ(''); };
 
   if (picked) {
     return (
       <div className="picked">
         <span className="dot"><Icon name="check" size={18} /></span>
-        <span className="grow"><small>Da biblioteca</small><b>{picked.name}</b></span>
+        <span className="grow"><small>Da biblioteca{picked.category ? ` · ${picked.category}` : ''}</small><b>{picked.name}</b></span>
         <button type="button" className="btn sm" onClick={() => { setPicked(null); setOpen(true); }}>Trocar</button>
       </div>
     );
@@ -135,30 +140,82 @@ function LibraryPicker({ library, onPick }: { library: Lib[]; onPick: (l: Lib) =
     <div className="picker">
       <button type="button" className="picker-h" aria-expanded={open} onClick={() => setOpen(o => !o)}>
         <span className="dot"><Icon name="book" size={18} /></span>
-        <span className="grow"><b>Escolher da biblioteca</b><small>{library.length} exercícios salvos</small></span>
+        <span className="grow"><b>Escolher da biblioteca</b><small>{library.length} exercícios · {cats.length} categorias</small></span>
         <span className="ibtn sq"><Icon name={open ? 'up' : 'down'} size={16} /></span>
       </button>
       {open && (
         <div className="picker-b">
           <label className="search">
             <Icon name="search" size={18} />
-            <input type="search" autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="Buscar exercício" aria-label="Buscar na biblioteca"
+            <input type="search" autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder="Buscar exercício ou categoria" aria-label="Buscar na biblioteca"
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (list[0]) choose(list[0]); } if (e.key === 'Escape') setOpen(false); }} />
           </label>
-          <ul className="picker-l" aria-label="Exercícios da biblioteca">
-            {list.map(l => (
-              <li key={l.name}>
-                <button type="button" onClick={() => choose(l)}>
-                  <span className="grow">{l.name}</span>
-                  {l.video_url && <span className="has"><Icon name="play" size={14} />vídeo</span>}
-                </button>
-              </li>
+          {cats.length > 1 && (
+            <div className="picker-cats" role="group" aria-label="Filtrar por categoria">
+              <button type="button" className={`chip sm ${!cat ? 'on' : ''}`} aria-pressed={!cat} onClick={() => setCat('')}>Todas</button>
+              {cats.map(c => <button type="button" key={c} className={`chip sm ${cat === c ? 'on' : ''}`} aria-pressed={cat === c} onClick={() => setCat(cat === c ? '' : c)}>{c}</button>)}
+            </div>
+          )}
+          <div className="picker-l" aria-label="Exercícios da biblioteca">
+            {[...groups].map(([g, items]) => (
+              <div key={g} className="picker-g">
+                <p className="picker-gh">{g} <span>{items.length}</span></p>
+                <ul>
+                  {items.map(l => (
+                    <li key={l.name}>
+                      <button type="button" onClick={() => choose(l)}>
+                        <span className="grow">{l.name}</span>
+                        {l.video_url && !l.video_url.includes('youtube.com/results') &&<span className="has"><Icon name="play" size={14} />vídeo</span>}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
-            {!list.length && <li className="none">Nenhum exercício com “{q}”. Preencha o nome abaixo.</li>}
-          </ul>
+            {!list.length && <p className="none">Nenhum exercício encontrado{q ? ` para “${q}”` : ''}. Preencha o nome abaixo.</p>}
+          </div>
         </div>
       )}
     </div>
+  );
+}
+
+/** Página da biblioteca: busca e filtro por categoria sobre a lista agrupada (renderizada no servidor). */
+export function LibrarySearch({ cats, children }: { cats: [string, number][]; children: React.ReactNode }) {
+  const [q, setQ] = useState('');
+  const [cat, setCat] = useState('');
+  const [shown, setShown] = useState<number | null>(null);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const nq = norm(q.trim());
+    let total = 0;
+    el.querySelectorAll<HTMLElement>('.lib-group').forEach(g => {
+      let n = 0;
+      g.querySelectorAll<HTMLElement>('.exr').forEach(x => {
+        const ok = (!cat || g.dataset.cat === cat) && (!nq || norm(x.dataset.name ?? '').includes(nq));
+        x.hidden = !ok; if (ok) n++;
+      });
+      g.hidden = n === 0; total += n;
+    });
+    setShown(q || cat ? total : null);
+  }, [q, cat]);
+  return (
+    <>
+      <div className="lib-tools">
+        <label className="search">
+          <Icon name="search" size={18} />
+          <input type="search" value={q} onChange={e => setQ(e.target.value)} placeholder="Buscar exercício ou categoria" aria-label="Buscar na biblioteca" />
+        </label>
+        <div className="chips" role="group" aria-label="Filtrar por categoria">
+          <button type="button" className={`chip sm ${!cat ? 'on' : ''}`} aria-pressed={!cat} onClick={() => setCat('')}>Todas</button>
+          {cats.map(([c, n]) => <button type="button" key={c} className={`chip sm ${cat === c ? 'on' : ''}`} aria-pressed={cat === c} onClick={() => setCat(cat === c ? '' : c)}>{c} <small>{n}</small></button>)}
+        </div>
+        {shown !== null && <p className="muted" role="status" style={{ fontSize: '.88rem', paddingLeft: 4 }}>{shown ? `${shown} ${shown === 1 ? 'exercício encontrado' : 'exercícios encontrados'}` : 'Nenhum exercício encontrado.'}</p>}
+      </div>
+      <div ref={box} className="lib-groups">{children}</div>
+    </>
   );
 }
 

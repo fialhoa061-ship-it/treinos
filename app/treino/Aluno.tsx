@@ -227,7 +227,7 @@ export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId,
               </div>
             ) : ex.video_url ? (
               <button type="button" className="media" onClick={() => v ? setVideos({ ...videos, [ex.id]: true }) : window.open(ex.video_url!, '_blank', 'noopener')}>
-                <span className="dot"><Icon name="play" size={18} /></span><span className="grow">Ver execução</span><span className="ibtn sq"><Icon name="right" size={16} /></span>
+                <span className="dot"><Icon name="play" size={18} /></span><span className="grow">{v ? 'Ver execução' : 'Ver vídeos de execução no YouTube'}</span><span className="ibtn sq"><Icon name="right" size={16} /></span>
               </button>
             ) : (
               <a className="media" target="_blank" rel="noopener" href={`https://www.youtube.com/results?search_query=${encodeURIComponent('execução ' + ex.name)}`}>

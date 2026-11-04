@@ -24,7 +24,7 @@ export default async function Aluno({ params, searchParams }: { params: Promise<
     rows(s`select * from workouts where student_id=${id} order by position, id`),
     rows(s`select e.* from workout_exercises e join workouts w on w.id=e.workout_id where w.student_id=${id} order by e.position, e.id`),
     rows(s`select id, name from students where id<>${id} order by name`),
-    rows(s`select name, video_url, notes from exercise_library order by name`),
+    rows(s`select name, video_url, notes, category from exercise_library order by category nulls last, name`),
     rows(s`select count(*)::int as sessoes from sessions where student_id=${id}`),
   ]);
   const bmi = imc(st.weight_kg, st.height_m);
