@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { rows, sql } from '@/lib/db';
-import { ALERTAS, ESFORCO, imc, type Alerta } from '@/lib/util';
+import { ALERTAS, ESFORCO, imc, validade, type Alerta } from '@/lib/util';
 import Icon from '../../../Icon';
 import { Act, Flash, Top, initials } from '../../ui';
 import { AccessCode, ExerciseForm } from '../../Client';
 import { StudentFields } from '../../fields';
-import { deleteExercise, deleteStudent, deleteWorkout, duplicateWorkout, moveExercise, moveWorkout, newAccessCode, saveExercise, saveStudent, saveWorkout } from '../../actions';
+import Avaliacao, { type Av } from '../../Avaliacao';
+import { deleteExercise, deleteStudent, deleteWorkout, duplicateWorkout, moveExercise, moveWorkout, newAccessCode, saveExercise, savePlanUntil, saveStudent, saveWorkout } from '../../actions';
 
 const kg = (v: unknown) => (v == null ? '—' : `${Number(v).toLocaleString('pt-BR')} kg`);
 const m = (v: unknown) => (v == null ? '—' : `${Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} m`);
@@ -20,7 +21,7 @@ export default async function Aluno({ params, searchParams }: { params: Promise<
   const [st] = await rows(s`select * from students where id=${id}`);
   if (!st) notFound();
 
-  const [workouts, exercises, others, library, [{ sessoes }], retornos] = await Promise.all([
+  const [workouts, exercises, others, library, [{ sessoes }], retornos, avs, [{ hoje, plan }]] = await Promise.all([
     rows(s`select * from workouts where student_id=${id} order by position, id`),
     rows(s`select e.* from workout_exercises e join workouts w on w.id=e.workout_id where w.student_id=${id} order by e.position, e.id`),
     rows(s`select id, name from students where id<>${id} order by name`),
@@ -31,7 +32,11 @@ export default async function Aluno({ params, searchParams }: { params: Promise<
       se.effort, se.alerts, se.comment
       from sessions se join workouts w on w.id = se.workout_id
       where se.student_id=${id} order by se.finished_at desc limit 8`),
+    rows(s`select id, to_char(measured_on, 'YYYY-MM-DD') as d, weight_kg, body_fat, waist_cm, hip_cm, chest_cm, arm_cm, thigh_cm, notes
+      from assessments where student_id=${id} order by measured_on, id`),
+    rows(s`select to_char(now() at time zone 'America/Sao_Paulo', 'YYYY-MM-DD') as hoje, to_char(plan_until, 'YYYY-MM-DD') as plan from students where id=${id}`),
   ]);
+  const val = validade(plan);
   const bmi = imc(st.weight_kg, st.height_m);
 
   return (
@@ -61,6 +66,8 @@ export default async function Aluno({ params, searchParams }: { params: Promise<
         </details>
       </section>
 
+      <Avaliacao sid={id} avs={avs as Av[]} hoje={hoje} />
+
       <AccessCode code={st.access_code} name={st.name}
         regenerate={<Act action={newAccessCode} fields={{ id }} cls="btn soft"
           label={<><Icon name="refresh" size={18} />{st.access_code ? 'Novo código' : 'Gerar código'}</>}
@@ -88,6 +95,17 @@ export default async function Aluno({ params, searchParams }: { params: Promise<
       )}
 
       <div className="section-t"><h2>Treinos</h2><span>{workouts.length} {workouts.length === 1 ? 'treino' : 'treinos'}</span></div>
+
+      <form action={savePlanUntil} className={val?.vencido ? 'panel tight plan warn' : 'panel tight plan'}>
+        <input type="hidden" name="id" value={id} />
+        <span className="dot"><Icon name="calendar" size={20} /></span>
+        <label className="grow">
+          <b>{val ? val.texto : 'Validade do treino'}</b>
+          <small>{val ? 'Data planejada para trocar a ficha' : 'Defina quando trocar a ficha deste aluno'}</small>
+          <input type="date" name="plan_until" defaultValue={plan ?? ''} aria-label="Data de troca do treino" />
+        </label>
+        <button className="btn sm">Salvar</button>
+      </form>
 
       {workouts.map(w => {
         const exs = exercises.filter(e => e.workout_id === w.id);

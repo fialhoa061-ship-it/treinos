@@ -14,3 +14,13 @@ export type Alerta = keyof typeof ALERTAS;
 
 /** Escala de esforço percebido 0–10 (Borg CR10, em linguagem simples). */
 export const ESFORCO = ['Repouso', 'Muito, muito leve', 'Leve', 'Moderado', 'Um pouco forte', 'Forte', 'Forte', 'Muito forte', 'Muito forte', 'Quase máximo', 'Máximo'] as const;
+
+/** Validade da ficha: dias até a data de troca (negativo = vencido). Datas 'YYYY-MM-DD', fuso de Brasília. */
+export function validade(d: string | null | undefined): { dias: number; texto: string; vencido: boolean; perto: boolean } | null {
+  if (!d) return null;
+  const hoje = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+  const dias = Math.round((Date.parse(d) - Date.parse(hoje)) / 86400_000);
+  const n = Math.abs(dias), u = n === 1 ? 'dia' : 'dias';
+  const texto = dias < 0 ? `Treino vencido há ${n} ${u}` : dias === 0 ? 'Trocar o treino hoje' : `Trocar o treino em ${n} ${u}`;
+  return { dias, texto, vencido: dias < 0, perto: dias >= 0 && dias <= 7 };
+}

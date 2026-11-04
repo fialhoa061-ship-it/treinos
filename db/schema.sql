@@ -65,3 +65,22 @@ create table if not exists login_attempts (
   created_at timestamptz not null default now()
 );
 create index if not exists login_attempts_idx on login_attempts (ip, created_at);
+
+-- validade da ficha: data em que o professor planeja trocar o treino do aluno
+alter table students add column if not exists plan_until date;
+
+-- avaliação física: histórico de peso e medidas
+create table if not exists assessments (
+  id serial primary key,
+  student_id int not null references students(id) on delete cascade,
+  measured_on date not null default current_date,
+  weight_kg numeric(5,1),
+  body_fat numeric(4,1),
+  waist_cm numeric(5,1),
+  hip_cm numeric(5,1),
+  chest_cm numeric(5,1),
+  arm_cm numeric(5,1),
+  thigh_cm numeric(5,1),
+  notes text
+);
+create index if not exists assessments_student_idx on assessments (student_id, measured_on);

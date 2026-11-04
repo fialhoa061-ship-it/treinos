@@ -67,6 +67,45 @@ export async function newAccessCode(f: FormData) {
   student(id, 'Novo código gerado; o antigo não funciona mais');
 }
 
+// ---- validade da ficha ----
+export async function savePlanUntil(f: FormData) {
+  await requireAdmin();
+  const id = int(f, 'id'), v = str(f, 'plan_until', 10);
+  const ok = /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
+  await sql()`update students set plan_until=${ok ? v : null} where id=${id}`;
+  student(id, ok ? 'Data de troca salva' : 'Data de troca removida');
+}
+
+// ---- avaliação física ----
+// faixas plausíveis: fora delas o valor é ignorado (evita estourar as colunas numeric)
+const medida = (f: FormData, k: string, max: number) => { const v = num(f, k); return v !== null && v > 0 && v <= max ? Math.round(v * 10) / 10 : null; };
+
+export async function saveAssessment(f: FormData) {
+  await requireAdmin();
+  const sid = int(f, 'student_id');
+  const d = str(f, 'measured_on', 10);
+  const day = /^\d{4}-\d{2}-\d{2}$/.test(d) && !Number.isNaN(Date.parse(d)) ? d : null;
+  const m = {
+    weight: medida(f, 'weight_kg', 500), fat: medida(f, 'body_fat', 80), waist: medida(f, 'waist_cm', 300), hip: medida(f, 'hip_cm', 300),
+    chest: medida(f, 'chest_cm', 300), arm: medida(f, 'arm_cm', 150), thigh: medida(f, 'thigh_cm', 200),
+  };
+  if (Object.values(m).every(v => v === null)) return student(sid, 'Preencha ao menos uma medida');
+  const s = sql();
+  await s`insert into assessments (student_id, measured_on, weight_kg, body_fat, waist_cm, hip_cm, chest_cm, arm_cm, thigh_cm, notes)
+    values (${sid}, coalesce(${day}::date, current_date), ${m.weight}, ${m.fat}, ${m.waist}, ${m.hip}, ${m.chest}, ${m.arm}, ${m.thigh}, ${str(f, 'notes', 1000) || null})`;
+  // o peso da avaliação mais recente vira o peso do aluno (e o IMC acompanha)
+  await s`update students set weight_kg = (select weight_kg from assessments where student_id=${sid} and weight_kg is not null order by measured_on desc, id desc limit 1)
+    where id=${sid} and exists (select 1 from assessments where student_id=${sid} and weight_kg is not null)`;
+  student(sid, 'Avaliação salva');
+}
+
+export async function deleteAssessment(f: FormData) {
+  await requireAdmin();
+  const sid = int(f, 'student_id');
+  await sql()`delete from assessments where id=${int(f, 'id')} and student_id=${sid}`;
+  student(sid, 'Avaliação removida');
+}
+
 // ---- treinos ----
 export async function saveWorkout(f: FormData) {
   await requireAdmin();
@@ -169,7 +208,7 @@ export async function deleteLibrary(f: FormData) {
 }
 
 // ---- backup ----
-const TABLES = ['exercise_library', 'students', 'workouts', 'workout_exercises', 'sessions', 'set_logs'] as const;
+const TABLES = ['exercise_library', 'students', 'assessments', 'workouts', 'workout_exercises', 'sessions', 'set_logs'] as const;
 
 export async function importBackup(f: FormData) {
   await requireAdmin();

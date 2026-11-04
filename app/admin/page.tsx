@@ -1,13 +1,13 @@
 import Link from 'next/link';
 import { rows, sql } from '@/lib/db';
-import { ALERTAS, imc, type Alerta } from '@/lib/util';
+import { ALERTAS, imc, validade, type Alerta } from '@/lib/util';
 import Icon from '../Icon';
 import { Flash, Top, initials } from './ui';
 
 export default async function Alunos({ searchParams }: { searchParams: Promise<{ m?: string }> }) {
   const { m } = await searchParams;
   const list = await rows(sql()`
-    select s.id, s.name, s.weight_kg, s.height_m,
+    select s.id, s.name, s.weight_kg, s.height_m, to_char(s.plan_until, 'YYYY-MM-DD') as plan,
       (select count(*)::int from workouts w where w.student_id = s.id) as treinos,
       (select max(finished_at) from sessions se where se.student_id = s.id) as ultimo,
       -- sintomas relatados nos últimos 7 dias (retorno do aluno ao finalizar)
@@ -43,7 +43,8 @@ export default async function Alunos({ searchParams }: { searchParams: Promise<{
             return (
               <Link className="item" key={r.id} href={`/admin/alunos/${r.id}`}>
                 <span className="avatar">{initials(r.name)}</span>
-                <span className="grow"><b>{r.name}</b><small>{info}</small>{r.alertas?.length > 0 && <span className="alert-tag" style={{ marginTop: 6 }}><Icon name="info" size={13} />{nomes(r.alertas)}</span>}</span>
+                <span className="grow"><b>{r.name}</b><small>{info}</small>{r.alertas?.length > 0 && <span className="alert-tag" style={{ marginTop: 6 }}><Icon name="info" size={13} />{nomes(r.alertas)}</span>}
+                  {(() => { const v = validade(r.plan); return v && (v.vencido || v.perto) ? <span className={v.vencido ? "alert-tag" : "tag blue"} style={{ marginTop: 6, marginLeft: 4, minHeight: 24, fontSize: ".75rem" }}><Icon name="calendar" size={13} />{v.vencido ? "Treino vencido" : v.dias === 0 ? "Trocar hoje" : `Trocar em ${v.dias}d`}</span> : null; })()}</span>
                 <span className="end">{r.ultimo ? quando(new Date(r.ultimo)) : 'Sem treino'}<Icon name="right" size={18} /></span>
               </Link>
             );

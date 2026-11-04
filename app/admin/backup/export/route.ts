@@ -3,7 +3,7 @@ import { sql } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-const TABLES = ['exercise_library', 'students', 'workouts', 'workout_exercises', 'sessions', 'set_logs'];
+const TABLES = ['exercise_library', 'students', 'assessments', 'workouts', 'workout_exercises', 'sessions', 'set_logs'];
 
 export async function GET() {
   if (!(await isAdmin())) return new Response('Não autorizado', { status: 401 });

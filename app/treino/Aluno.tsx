@@ -5,6 +5,7 @@ import { saveSession, type Feedback, type Payload } from './actions';
 import { ALERTAS, ESFORCO, type Alerta } from '@/lib/util';
 import { studentLogout } from '../login/actions';
 import Calendario, { type Dia } from './Calendario';
+import Evolucao, { type Ponto } from './Evolucao';
 import Icon from '../Icon';
 
 type Ex = { id: number; name: string; sets: number; reps: string; rest: string; notes: string | null; video_url: string | null };
@@ -42,9 +43,10 @@ function beep() {
   } catch { /* sem áudio */ }
 }
 
-export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId, sessions, today }: {
+export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId, sessions, today, evo = [], pesos = [] }: {
   sid: number; name: string; notes: string | null; workouts: Workout[];
   last: Record<string, LastSet[]>; lastWorkoutId: number | null; sessions: Dia[]; today: string;
+  evo?: Ponto[]; pesos?: { d: string; w: number }[];
 }) {
   const pkey = `pend:${sid}`;
   const wkey = (id: number) => `treino:${sid}:${id}`;
@@ -226,6 +228,7 @@ export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId,
       </section>
 
       <Calendario sessions={sessions} today={today} />
+      <Evolucao evo={evo} pesos={pesos} />
 
       <div className="section-t"><h2>Exercícios</h2><span>{W.exercises.length} · {total} séries</span></div>
 
