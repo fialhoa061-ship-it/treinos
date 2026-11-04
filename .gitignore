@@ -7,3 +7,5 @@ legacy-php/config/config.php
 tsconfig.tsbuildinfo
 .playwright-mcp
 .impeccable/review
+# gerado automaticamente pelo Next.js a cada "next dev"
+AGENTS.md
