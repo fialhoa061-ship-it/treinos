@@ -2,9 +2,11 @@
 
 import { rows, sql } from '@/lib/db';
 import { getStudent } from '@/lib/auth';
+import { ALERTAS } from '@/lib/util';
 
 type Log = { we_id: number; set: number; weight: string; reps: string };
-export type Payload = { workout_id: number; logs: Log[]; at?: string };
+export type Feedback = { effort?: number | null; alerts?: string[]; comment?: string };
+export type Payload = { workout_id: number; logs: Log[]; at?: string; feedback?: Feedback };
 
 /** Grava a sessão do aluno logado. Tudo numa única instrução = atômico. */
 export async function saveSession(p: Payload): Promise<{ ok: boolean; expired?: boolean }> {
@@ -35,8 +37,15 @@ export async function saveSession(p: Payload): Promise<{ ok: boolean; expired?: 
   const at = Date.parse(p.at ?? '');
   const when = at && at <= Date.now() && at > Date.now() - 30 * 86400_000 ? new Date(at).toISOString() : new Date().toISOString();
 
+  // retorno do aluno: esforço 0–10, sintomas conhecidos e comentário curto (tudo opcional)
+  const fb = p.feedback ?? {};
+  const effort = Number.isInteger(fb.effort) && fb.effort! >= 0 && fb.effort! <= 10 ? fb.effort! : null;
+  const alerts = [...new Set((Array.isArray(fb.alerts) ? fb.alerts : []).filter(a => a in ALERTAS))];
+  const comment = String(fb.comment ?? '').trim().slice(0, 500) || null;
+
   await s`
-    with ses as (insert into sessions (student_id, workout_id, finished_at) values (${st.id}, ${Number(p.workout_id)}, ${when}) returning id)
+    with ses as (insert into sessions (student_id, workout_id, finished_at, effort, alerts, comment)
+      values (${st.id}, ${Number(p.workout_id)}, ${when}, ${effort}, ${alerts.length ? alerts : null}, ${comment}) returning id)
     insert into set_logs (session_id, workout_exercise_id, set_number, weight_kg, reps)
     select ses.id, x.we, x.n, x.w, x.r from ses, jsonb_to_recordset(${JSON.stringify([...seen.values()])}::jsonb) as x(we int, n int, w numeric, r int)`;
   return { ok: true };

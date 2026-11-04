@@ -1,7 +1,7 @@
 import type { Viewport } from 'next';
 import { getImageProps } from 'next/image';
 import { redirect } from 'next/navigation';
-import { isAdmin } from '@/lib/auth';
+import { getStudent, isAdmin } from '@/lib/auth';
 import LoginForm from './LoginForm';
 import tall from '../../public/login-bg.webp';
 import wide from '../../public/login-bg-wide.webp';
@@ -16,6 +16,7 @@ const WIDE = '(min-width: 960px)';
 
 export default async function LoginPage() {
   if (await isAdmin()) redirect('/admin');
+  if (await getStudent()) redirect('/treino'); // aluno já logado (30 dias) vai direto ao treino
   const common = { alt: '', sizes: '100vw', priority: true, quality: 90 };
   const { props: { srcSet: wideSet } } = getImageProps({ ...common, src: wide });
   const { props: tallProps } = getImageProps({ ...common, src: tall });

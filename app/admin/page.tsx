@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { rows, sql } from '@/lib/db';
-import { imc } from '@/lib/util';
+import { ALERTAS, imc, type Alerta } from '@/lib/util';
 import Icon from '../Icon';
 import { Flash, Top, initials } from './ui';
 
@@ -9,8 +9,15 @@ export default async function Alunos({ searchParams }: { searchParams: Promise<{
   const list = await rows(sql()`
     select s.id, s.name, s.weight_kg, s.height_m,
       (select count(*)::int from workouts w where w.student_id = s.id) as treinos,
-      (select max(finished_at) from sessions se where se.student_id = s.id) as ultimo
+      (select max(finished_at) from sessions se where se.student_id = s.id) as ultimo,
+      -- sintomas relatados nos últimos 7 dias (retorno do aluno ao finalizar)
+      (select array_agg(distinct a) from sessions se, unnest(se.alerts) a
+        where se.student_id = s.id and se.finished_at > now() - interval '7 days') as alertas,
+      (select max(finished_at) from sessions se where se.student_id = s.id and se.alerts is not null
+        and se.finished_at > now() - interval '7 days') as alerta_em
     from students s order by s.name`);
+  const atencao = list.filter(r => r.alertas?.length).sort((a, b) => +new Date(b.alerta_em) - +new Date(a.alerta_em));
+  const nomes = (l: Alerta[]) => l.map(a => ALERTAS[a] ?? a).join(', ');
   const ativos = list.filter(r => r.ultimo && Date.now() - new Date(r.ultimo).getTime() < 7 * 86400_000).length;
 
   return (
@@ -18,6 +25,15 @@ export default async function Alunos({ searchParams }: { searchParams: Promise<{
       <Flash m={m} />
       <Top title="Alunos" sub={list.length ? `${list.length} ${list.length === 1 ? 'aluno' : 'alunos'} · ${ativos} treinaram nos últimos 7 dias` : 'Comece cadastrando o primeiro aluno'}>
       </Top>
+
+      {atencao.length > 0 && (
+        <section className="attn" aria-labelledby="attn-t">
+          <h2 id="attn-t"><Icon name="info" size={18} />Atenção: sintomas relatados nos últimos 7 dias</h2>
+          {atencao.map(r => (
+            <Link key={r.id} href={`/admin/alunos/${r.id}#retorno`}><b>{r.name}</b><span>{nomes(r.alertas)} · {quando(new Date(r.alerta_em))}</span></Link>
+          ))}
+        </section>
+      )}
 
       {list.length ? (
         <div className="list">
@@ -27,7 +43,7 @@ export default async function Alunos({ searchParams }: { searchParams: Promise<{
             return (
               <Link className="item" key={r.id} href={`/admin/alunos/${r.id}`}>
                 <span className="avatar">{initials(r.name)}</span>
-                <span className="grow"><b>{r.name}</b><small>{info}</small></span>
+                <span className="grow"><b>{r.name}</b><small>{info}</small>{r.alertas?.length > 0 && <span className="alert-tag" style={{ marginTop: 6 }}><Icon name="info" size={13} />{nomes(r.alertas)}</span>}</span>
                 <span className="end">{r.ultimo ? quando(new Date(r.ultimo)) : 'Sem treino'}<Icon name="right" size={18} /></span>
               </Link>
             );

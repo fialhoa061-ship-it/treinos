@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { saveSession, type Payload } from './actions';
+import { saveSession, type Feedback, type Payload } from './actions';
+import { ALERTAS, ESFORCO, type Alerta } from '@/lib/util';
 import { studentLogout } from '../login/actions';
 import Calendario, { type Dia } from './Calendario';
 import Icon from '../Icon';
@@ -55,7 +56,9 @@ export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId,
   const [videos, setVideos] = useState<Record<number, boolean>>({});
   const [end, setEnd] = useState(0);
   const [left, setLeft] = useState(0);
-  const [summary, setSummary] = useState<{ sets: number; vol: number; queued: boolean; name: string } | null>(null);
+  const [summary, setSummary] = useState<{ sets: number; vol: number; queued: boolean; name: string; effort: number | null } | null>(null);
+  const [ask, setAsk] = useState(false);
+  const [online, setOnline] = useState(true);
   const [busy, setBusy] = useState(false);
   const flushing = useRef(false);
 
@@ -112,21 +115,44 @@ export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId,
     return () => removeEventListener('online', flush);
   }, [flush]);
 
-  async function finish() {
-    if (!W) return;
+  // conexão: aviso discreto quando cair; o treino continua salvo no celular
+  useEffect(() => {
+    const up = () => setOnline(navigator.onLine);
+    up();
+    addEventListener('online', up); addEventListener('offline', up);
+    return () => { removeEventListener('online', up); removeEventListener('offline', up); };
+  }, []);
+
+  // app offline: guarda esta página e os arquivos do app no celular (public/sw.js)
+  useEffect(() => { if (process.env.NODE_ENV === 'production') navigator.serviceWorker?.register('/sw.js').catch(() => {}); }, []);
+
+  function collect(): Payload['logs'] {
     const logs: Payload['logs'] = [];
-    for (const ex of W.exercises) for (let n = 1; n <= ex.sets; n++) {
+    if (W) for (const ex of W.exercises) for (let n = 1; n <= ex.sets; n++) {
       const k = `${ex.id}-${n}`;
       if (prog.done[k] || prog.w[k] || prog.r[k]) logs.push({ we_id: ex.id, set: n, weight: prog.w[k] ?? '', reps: prog.r[k] ?? '' });
     }
-    if (!logs.length) { alert('Marque ao menos uma série.'); return; }
+    return logs;
+  }
+
+  // "Finalizar treino" abre o retorno (esforço e sintomas); o envio acontece ao confirmar
+  function finish() {
+    if (!collect().length) { alert('Marque ao menos uma série.'); return; }
+    setEnd(0);
+    setAsk(true);
+  }
+
+  async function send(feedback: Feedback) {
+    if (!W) return;
+    const logs = collect();
     setBusy(true);
     // entra na fila antes de enviar: se falhar, tenta de novo depois sem perder nada
-    setQ([...getQ(), { workout_id: W.id, logs, at: new Date().toISOString() }]);
+    setQ([...getQ(), { workout_id: W.id, logs, at: new Date().toISOString(), feedback }]);
     localStorage.removeItem(wkey(W.id));
     const ok = await flush();
-    setEnd(0);
-    setSummary({ name: W.name, sets: logs.length, queued: !ok, vol: logs.reduce((a, l) => a + (Number(l.weight) || 0) * (Number(l.reps) || 0), 0) });
+    setAsk(false);
+    setSummary({ name: W.name, sets: logs.length, queued: !ok, effort: feedback.effort ?? null,
+      vol: logs.reduce((a, l) => a + (Number(l.weight) || 0) * (Number(l.reps) || 0), 0) });
   }
 
   function step(k: string, d: number, placeholder: string) {
@@ -158,8 +184,9 @@ export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId,
 
   return (
     <>
-    <main className="screen" inert={!!summary}>
+    <main className="screen" inert={!!summary || ask}>
       <Header first={first} ini={ini} sub={feitas ? 'Bora terminar esse treino' : 'Vamos começar o treino de hoje'} />
+      {!online && <p className="offline" role="status"><Icon name="info" size={18} />Sem internet. Pode treinar normalmente: tudo fica salvo no celular e é enviado quando a conexão voltar.</p>}
 
       <section className="panel today" aria-label="Progresso do treino">
         <div className="label">
@@ -281,6 +308,7 @@ export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId,
         </div>
       )}
     </main>
+    {ask && !summary && <Retorno busy={busy} onSend={send} onCancel={() => setAsk(false)} />}
     {summary && <Concluido {...summary} />}
     </>
   );
@@ -291,13 +319,13 @@ function Header({ first, ini, sub }: { first: string; ini: string; sub: string }
     <header className="top">
       <span className="avatar on" aria-hidden="true">{ini}</span>
       <div className="grow"><h1>Olá, {first}!</h1><p>{sub}</p></div>
-      <form action={studentLogout}><button className="ibtn" aria-label="Sair" title="Sair"><Icon name="logout" /></button></form>
+      <form action={studentLogout} onSubmit={limparCopia}><button className="ibtn" aria-label="Sair" title="Sair"><Icon name="logout" /></button></form>
     </header>
   );
 }
 
 /** Tela de treino concluído: o treino fica desfocado ao fundo e um card central celebra. */
-function Concluido({ name, sets, vol, queued }: { name: string; sets: number; vol: number; queued: boolean }) {
+function Concluido({ name, sets, vol, queued, effort }: { name: string; sets: number; vol: number; queued: boolean; effort: number | null }) {
   const kg = Math.round(vol);
   const fechar = () => location.reload();
   const frequencia = () => { location.hash = 'frequencia'; location.reload(); };
@@ -326,7 +354,7 @@ function Concluido({ name, sets, vol, queued }: { name: string; sets: number; vo
           </div>
           <h1 id="fin-t">Treino {name} concluído</h1>
           <p id="fin-d">
-            {sets} {sets === 1 ? 'série registrada' : 'séries registradas'}{kg > 0 && <> · {kg.toLocaleString('pt-BR')} kg levantados</>}
+            {sets} {sets === 1 ? 'série registrada' : 'séries registradas'}{kg > 0 && <> · {kg.toLocaleString('pt-BR')} kg levantados</>}{effort != null && <> · esforço {effort}/10</>}
           </p>
           {queued && <p className="finish-q"><Icon name="clock" size={16} />Envio quando a internet voltar</p>}
         </div>
@@ -337,4 +365,65 @@ function Concluido({ name, sets, vol, queued }: { name: string; sets: number; vo
       </div>
     </div>
   );
+}
+
+/** Retorno ao finalizar: esforço percebido (0–10) e sintomas. Dois toques para enviar; tudo opcional. */
+function Retorno({ busy, onSend, onCancel }: { busy: boolean; onSend: (f: Feedback) => void; onCancel: () => void }) {
+  const [effort, setEffort] = useState<number | null>(null);
+  const [alerts, setAlerts] = useState<Alerta[]>([]);
+  const [comment, setComment] = useState('');
+  const toggle = (a: Alerta) => setAlerts(l => (l.includes(a) ? l.filter(x => x !== a) : [...l, a]));
+  const sintomas = alerts.length > 0;
+  return (
+    <div className="finish fb" role="dialog" aria-modal="true" aria-labelledby="fb-t">
+      <div className="fb-sheet">
+        <div className="fb-h">
+          <h1 id="fb-t">Como foi o treino?</h1>
+          <button type="button" className="ibtn" aria-label="Voltar ao treino" onClick={onCancel} disabled={busy}><Icon name="left" /></button>
+        </div>
+
+        <fieldset className="fb-q">
+          <legend>Esforço do treino <small>0 = repouso · 10 = máximo</small></legend>
+          <div className="fb-scale" role="radiogroup" aria-label="Esforço de 0 a 10">
+            {ESFORCO.map((_, n) => (
+              <button type="button" key={n} role="radio" aria-checked={effort === n} aria-label={`${n}: ${ESFORCO[n]}`}
+                className={effort === n ? 'on' : ''} onClick={() => setEffort(effort === n ? null : n)}>{n}</button>
+            ))}
+          </div>
+          <p className="fb-hint" aria-live="polite">{effort == null ? 'Toque no número que mais combina com o treino de hoje.' : `${effort} · ${ESFORCO[effort]}`}</p>
+        </fieldset>
+
+        <fieldset className="fb-q">
+          <legend>Sentiu algo durante o treino?</legend>
+          <div className="fb-chips">
+            <button type="button" className={`chip sm ${!sintomas ? 'on' : ''}`} aria-pressed={!sintomas} onClick={() => setAlerts([])}>Tudo bem</button>
+            {(Object.keys(ALERTAS) as Alerta[]).map(a => (
+              <button type="button" key={a} className={`chip sm warn ${alerts.includes(a) ? 'on' : ''}`} aria-pressed={alerts.includes(a)} onClick={() => toggle(a)}>{ALERTAS[a]}</button>
+            ))}
+          </div>
+          {sintomas && (
+            <>
+              <label className="field fb-c"><span>Conte como foi (opcional)</span>
+                <textarea rows={2} maxLength={500} value={comment} onChange={e => setComment(e.target.value)} placeholder="Ex.: dor no joelho direito no agachamento" />
+              </label>
+              <p className="fb-warn"><Icon name="info" size={16} />Seu professor vai ver este aviso. Se os sintomas forem fortes ou não passarem, procure atendimento médico.</p>
+            </>
+          )}
+        </fieldset>
+
+        <button type="button" className="btn primary block" disabled={busy} onClick={() => onSend({ effort, alerts, comment: sintomas ? comment : '' })}>
+          {busy ? 'Enviando…' : <><Icon name="check" size={20} />Enviar treino</>}
+        </button>
+        <button type="button" className="link fb-skip" disabled={busy} onClick={() => onSend({})}>Pular e enviar sem responder</button>
+      </div>
+    </div>
+  );
+}
+
+/** Ao sair, apaga a cópia offline do treino deste aluno (celular compartilhado). */
+function limparCopia() {
+  try {
+    caches.keys().then(ks => ks.filter(k => k.startsWith('treino-pages')).forEach(k => caches.delete(k)));
+    navigator.serviceWorker?.controller?.postMessage('clear-pages');
+  } catch { /* sem cache API */ }
 }

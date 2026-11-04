@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { rows, sql } from '@/lib/db';
-import { imc } from '@/lib/util';
+import { ALERTAS, ESFORCO, imc, type Alerta } from '@/lib/util';
 import Icon from '../../../Icon';
 import { Act, Flash, Top, initials } from '../../ui';
 import { AccessCode, ExerciseForm } from '../../Client';
@@ -20,12 +20,17 @@ export default async function Aluno({ params, searchParams }: { params: Promise<
   const [st] = await rows(s`select * from students where id=${id}`);
   if (!st) notFound();
 
-  const [workouts, exercises, others, library, [{ sessoes }]] = await Promise.all([
+  const [workouts, exercises, others, library, [{ sessoes }], retornos] = await Promise.all([
     rows(s`select * from workouts where student_id=${id} order by position, id`),
     rows(s`select e.* from workout_exercises e join workouts w on w.id=e.workout_id where w.student_id=${id} order by e.position, e.id`),
     rows(s`select id, name from students where id<>${id} order by name`),
     rows(s`select name, video_url, notes, category from exercise_library order by category nulls last, name`),
     rows(s`select count(*)::int as sessoes from sessions where student_id=${id}`),
+    // retorno do aluno nos últimos treinos (esforço, sintomas, comentário)
+    rows(s`select to_char(se.finished_at at time zone 'America/Sao_Paulo', 'DD/MM') as d, w.name as w, w.focus,
+      se.effort, se.alerts, se.comment
+      from sessions se join workouts w on w.id = se.workout_id
+      where se.student_id=${id} order by se.finished_at desc limit 8`),
   ]);
   const bmi = imc(st.weight_kg, st.height_m);
 
@@ -60,6 +65,27 @@ export default async function Aluno({ params, searchParams }: { params: Promise<
         regenerate={<Act action={newAccessCode} fields={{ id }} cls="btn soft"
           label={<><Icon name="refresh" size={18} />{st.access_code ? 'Novo código' : 'Gerar código'}</>}
           confirm={st.access_code ? 'O código antigo deixará de funcionar e o aluno será desconectado. Continuar?' : undefined} />} />
+
+      {retornos.length > 0 && (
+        <section className="panel" id="retorno" aria-labelledby="ret-t">
+          <div className="panel-h"><h2 id="ret-t">Retorno dos treinos</h2><span className="muted" style={{ fontSize: '.84rem' }}>últimos {retornos.length}</span></div>
+          <div className="fbk">
+            {retornos.map((r, i) => (
+              <div key={i} className={r.alerts?.length ? 'fbk-row warn' : 'fbk-row'}>
+                <span className="fbk-d">{r.d}</span>
+                <span className="fbk-w">Treino {r.w}{r.focus ? ` · ${r.focus}` : ''}</span>
+                <span className="fbk-e" title={r.effort != null ? ESFORCO[r.effort] : 'Esforço não informado'}>{r.effort != null ? <>{r.effort}<small>/10</small></> : <small>sem nota</small>}</span>
+                {(r.alerts?.length > 0 || r.comment) && (
+                  <span className="fbk-x">
+                    {(r.alerts ?? []).map((a: Alerta) => <span key={a} className="alert-tag"><Icon name="info" size={13} />{ALERTAS[a] ?? a}</span>)}
+                    {r.comment && <q>{r.comment}</q>}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="section-t"><h2>Treinos</h2><span>{workouts.length} {workouts.length === 1 ? 'treino' : 'treinos'}</span></div>
 

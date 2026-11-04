@@ -46,6 +46,10 @@ create table if not exists sessions (
   finished_at timestamptz not null default now()
 );
 create index if not exists sessions_student_idx on sessions (student_id, finished_at);
+-- retorno do aluno ao finalizar: esforço percebido (0–10), sintomas e comentário
+alter table sessions add column if not exists effort smallint;
+alter table sessions add column if not exists alerts text[];
+alter table sessions add column if not exists comment text;
 create table if not exists set_logs (
   id serial primary key,
   session_id int not null references sessions(id) on delete cascade,
