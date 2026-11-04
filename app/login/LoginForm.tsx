@@ -1,9 +1,9 @@
 'use client';
 
 import { useActionState, useState } from 'react';
-import { login, studentLogin } from './actions';
+import { login, requestReset, studentLogin } from './actions';
 
-type View = 'start' | 'aluno' | 'prof';
+type View = 'start' | 'aluno' | 'prof' | 'forgot';
 
 const Arrow = () => (
   <span className="lp-arrow" aria-hidden="true">
@@ -16,6 +16,8 @@ export default function LoginForm() {
   const [showPw, setShowPw] = useState(false);
   const [err, action, pending] = useActionState(login, '');
   const [codeErr, codeAction, codePending] = useActionState(studentLogin, '');
+  const [resetMsg, resetAction, resetPending] = useActionState(requestReset, '');
+  const resetOk = resetMsg.startsWith('ok:');
   // foco automático só com mouse (computador): no celular abriria o teclado e cobriria o formulário
   const auto = typeof window !== 'undefined' && matchMedia('(hover: hover) and (pointer: fine)').matches;
   const [code, setCode] = useState('');
@@ -24,6 +26,7 @@ export default function LoginForm() {
     start: ['Seu treino começa aqui', 'O treino montado pelo seu professor, com séries, cargas e descanso, direto no celular.'],
     aluno: ['Acesso do aluno', 'Digite o código de 6 números que o seu professor passou.'],
     prof: ['Área do professor', 'Entre com seu e-mail e senha.'],
+    forgot: ['Esqueci minha senha', 'Digite o e-mail do professor. Enviamos um link para criar uma senha nova.'],
   }[view];
 
   return (
@@ -84,8 +87,30 @@ export default function LoginForm() {
             </button>
           </label>
           <button className="lp-main" disabled={pending}>{pending ? 'Entrando…' : 'Entrar'}<Arrow /></button>
-          <button type="button" className="lp-switch" onClick={() => setView('aluno')}>Sou aluno</button>
+          <div className="lp-links">
+            <button type="button" className="lp-switch" onClick={() => setView('forgot')}>Esqueci minha senha</button>
+            <button type="button" className="lp-switch" onClick={() => setView('aluno')}>Sou aluno</button>
+          </div>
         </form>
+      )}
+
+      {view === 'forgot' && (
+        resetOk ? (
+          <div className="lp-form" key="forgot-ok">
+            <p className="lp-ok" role="status">{resetMsg.slice(3)}</p>
+            <button type="button" className="lp-main" onClick={() => setView('prof')}>Voltar ao login<Arrow /></button>
+          </div>
+        ) : (
+          <form action={resetAction} className="lp-form" key="forgot">
+            {resetMsg && <p className="lp-err" role="alert">{resetMsg}</p>}
+            <label className="lp-field">
+              <span className="sr">E-mail do professor</span>
+              <input type="email" name="email" placeholder="E-mail" autoComplete="username" required autoFocus={auto} enterKeyHint="send" />
+            </label>
+            <button className="lp-main" disabled={resetPending}>{resetPending ? 'Enviando…' : 'Enviar link'}<Arrow /></button>
+            <button type="button" className="lp-switch" onClick={() => setView('prof')}>Voltar ao login</button>
+          </form>
+        )
       )}
     </main>
   );

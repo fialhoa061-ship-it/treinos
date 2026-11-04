@@ -4,7 +4,9 @@ import bcrypt from 'bcryptjs';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { rows, sql } from '@/lib/db';
+import { createHash, randomBytes } from 'node:crypto';
 import { createSession, createStudentSession, destroySession, destroyStudentSession } from '@/lib/auth';
+import { appUrl, sendResetEmail } from '@/lib/mail';
 
 // 5 erros por IP e por tipo de acesso bloqueiam por 15 minutos
 async function throttle(kind: string): Promise<{ key: string; blocked: boolean }> {
@@ -56,4 +58,43 @@ export async function studentLogin(_prev: string, form: FormData): Promise<strin
 export async function studentLogout() {
   await destroyStudentSession();
   redirect('/login');
+}
+
+// ---- esqueci minha senha (professor) ----
+const sha = (t: string) => createHash('sha256').update(t).digest('hex');
+const OK_RESET = 'ok:Se este e-mail for de um professor cadastrado, enviamos um link para criar uma nova senha. Confira a caixa de entrada e o spam.';
+
+/** Pede o link por e-mail. A resposta é sempre a mesma, exista o e-mail ou não. */
+export async function requestReset(_prev: string, form: FormData): Promise<string> {
+  const { key, blocked } = await throttle('reset');
+  if (blocked) return 'Muitas tentativas. Aguarde 15 minutos.';
+  const email = String(form.get('email') ?? '').trim().slice(0, 200);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Digite um e-mail válido.';
+  const s = sql();
+  await s`insert into login_attempts (ip) values (${key})`; // cada pedido conta: no máximo 5 a cada 15 min
+  const [u] = await rows(s`select id, email from users where lower(email) = lower(${email})`);
+  if (u) {
+    const token = randomBytes(32).toString('base64url');
+    await s`update password_resets set used_at = now() where user_id = ${u.id} and used_at is null`; // só o último link vale
+    await s`insert into password_resets (user_id, token_hash, expires_at) values (${u.id}, ${sha(token)}, now() + interval '1 hour')`;
+    try { await sendResetEmail(u.email, `${appUrl()}/login/redefinir?t=${token}`); }
+    catch (e) { console.error('reset: falha ao enviar e-mail', e); }
+  }
+  return OK_RESET;
+}
+
+/** Cria a senha nova a partir do link e entra na área do professor. */
+export async function resetPassword(_prev: string, form: FormData): Promise<string> {
+  const token = String(form.get('t') ?? ''), pw = String(form.get('password') ?? ''), pw2 = String(form.get('confirm') ?? '');
+  if (pw.length < 8) return 'A senha precisa ter pelo menos 8 caracteres.';
+  if (pw.length > 200) return 'Senha muito longa.';
+  if (pw !== pw2) return 'As duas senhas não são iguais.';
+  const s = sql();
+  const [r] = token ? await rows(s`select id, user_id from password_resets where token_hash = ${sha(token)} and used_at is null and expires_at > now()`) : [];
+  if (!r) return 'Este link expirou ou já foi usado. Peça um novo em "Esqueci minha senha".';
+  const hash = await bcrypt.hash(pw, 10);
+  await s`update users set password_hash = ${hash} where id = ${r.user_id}`;
+  await s`update password_resets set used_at = now() where user_id = ${r.user_id} and used_at is null`;
+  await createSession(r.user_id);
+  redirect('/admin?m=' + encodeURIComponent('Senha nova criada'));
 }

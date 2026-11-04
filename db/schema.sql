@@ -84,3 +84,14 @@ create table if not exists assessments (
   notes text
 );
 create index if not exists assessments_student_idx on assessments (student_id, measured_on);
+
+-- "esqueci minha senha" do professor: só o hash do token é guardado, vale 1 hora e uma única vez
+create table if not exists password_resets (
+  id serial primary key,
+  user_id int not null references users(id) on delete cascade,
+  token_hash text unique not null,
+  expires_at timestamptz not null,
+  used_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists password_resets_user_idx on password_resets (user_id, created_at);
