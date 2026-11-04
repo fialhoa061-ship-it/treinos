@@ -16,6 +16,8 @@ export default function LoginForm() {
   const [showPw, setShowPw] = useState(false);
   const [err, action, pending] = useActionState(login, '');
   const [codeErr, codeAction, codePending] = useActionState(studentLogin, '');
+  // foco automático só com mouse (computador): no celular abriria o teclado e cobriria o formulário
+  const auto = typeof window !== 'undefined' && matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   const head = {
     start: ['Seu treino começa aqui', 'O treino montado pelo seu professor, com séries, cargas e descanso, direto no celular.'],
@@ -51,7 +53,7 @@ export default function LoginForm() {
           <label className="lp-field">
             <span className="sr">Código de acesso</span>
             <input name="code" className="lp-code" placeholder="000000" inputMode="numeric" pattern="[0-9]{6}" maxLength={6}
-              autoComplete="one-time-code" required autoFocus />
+              autoComplete="one-time-code" required autoFocus={auto} />
           </label>
           <button className="lp-main" disabled={codePending}>{codePending ? 'Entrando…' : 'Entrar'}<Arrow /></button>
           <button type="button" className="lp-switch" onClick={() => setView('prof')}>Sou professor</button>
@@ -63,11 +65,11 @@ export default function LoginForm() {
           {err && <p className="lp-err" role="alert">{err}</p>}
           <label className="lp-field">
             <span className="sr">E-mail</span>
-            <input type="email" name="email" placeholder="E-mail" autoComplete="username" required autoFocus />
+            <input type="email" name="email" placeholder="E-mail" autoComplete="username" required autoFocus={auto} enterKeyHint="next" />
           </label>
           <label className="lp-field">
             <span className="sr">Senha</span>
-            <input type={showPw ? 'text' : 'password'} name="password" placeholder="Senha" autoComplete="current-password" required />
+            <input type={showPw ? 'text' : 'password'} name="password" placeholder="Senha" autoComplete="current-password" required enterKeyHint="go" />
             <button type="button" className="lp-eye" aria-label={showPw ? 'Ocultar senha' : 'Mostrar senha'} onClick={() => setShowPw(v => !v)}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />{!showPw && <path d="M4 4l16 16" />}
