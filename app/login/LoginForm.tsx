@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { login, studentLogin } from './actions';
 
 type View = 'start' | 'aluno' | 'prof';
@@ -18,6 +18,22 @@ export default function LoginForm() {
   const [codeErr, codeAction, codePending] = useActionState(studentLogin, '');
   // foco automático só com mouse (computador): no celular abriria o teclado e cobriria o formulário
   const auto = typeof window !== 'undefined' && matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const [code, setCode] = useState('');
+
+  // teclado virtual aberto = a área visível encolhe bem abaixo da maior altura já vista.
+  // Marca .lp[data-kb] para o CSS subir o card; ao fechar o teclado ele volta para baixo.
+  useEffect(() => {
+    const vv = window.visualViewport, lp = document.querySelector('.lp');
+    if (!vv || !lp) return;
+    let base = vv.height, w = vv.width;
+    const check = () => {
+      if (vv.width !== w) { w = vv.width; base = vv.height; } // girou o celular
+      base = Math.max(base, vv.height);
+      lp.toggleAttribute('data-kb', vv.height < base * 0.78);
+    };
+    vv.addEventListener('resize', check);
+    return () => { vv.removeEventListener('resize', check); lp.removeAttribute('data-kb'); };
+  }, []);
 
   const head = {
     start: ['Seu treino começa aqui', 'O treino montado pelo seu professor, com séries, cargas e descanso, direto no celular.'],
@@ -50,10 +66,16 @@ export default function LoginForm() {
       {view === 'aluno' && (
         <form action={codeAction} className="lp-form" key="aluno">
           {codeErr && <p className="lp-err" role="alert">{codeErr}</p>}
-          <label className="lp-field">
-            <span className="sr">Código de acesso</span>
-            <input name="code" className="lp-code" placeholder="000000" inputMode="numeric" pattern="[0-9]{6}" maxLength={6}
-              autoComplete="one-time-code" required autoFocus={auto} />
+          {/* um campo real (invisível) sobre 6 caixas: teclado numérico, colar e preenchimento por SMS continuam funcionando */}
+          <label className="lp-otp">
+            <span className="sr">Código de acesso de 6 números</span>
+            <input name="code" value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              inputMode="numeric" pattern="[0-9]{6}" maxLength={6} autoComplete="one-time-code" required autoFocus={auto} enterKeyHint="go" />
+            <span className="lp-otp-boxes" aria-hidden="true">
+              {Array.from({ length: 6 }, (_, i) => (
+                <i key={i} className={i === Math.min(code.length, 5) ? 'cur' : code[i] ? 'on' : ''}>{code[i] ?? ''}</i>
+              ))}
+            </span>
           </label>
           <button className="lp-main" disabled={codePending}>{codePending ? 'Entrando…' : 'Entrar'}<Arrow /></button>
           <button type="button" className="lp-switch" onClick={() => setView('prof')}>Sou professor</button>

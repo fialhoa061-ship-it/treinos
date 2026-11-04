@@ -1,6 +1,8 @@
 /* login: foto em tela cheia + folha de vidro fosco embaixo (referência FitPulse) */
 html:has(.lp){background:#05070f}
-.lp{position:relative;isolation:isolate;min-height:100svh;display:flex;flex-direction:column;justify-content:flex-start;overflow-x:clip;
+/* a página tem exatamente a altura visível (dvh): sem rolagem extra que esconde a marca e abre um vão embaixo */
+body:has(.lp){min-height:0}
+.lp{position:relative;isolation:isolate;min-height:100svh;min-height:100dvh;display:flex;flex-direction:column;justify-content:flex-start;overflow-x:clip;
   font:16px/1.45 var(--font-ui);color:#fff;-webkit-font-smoothing:antialiased}
 .lp ::selection{background:rgba(47,107,255,.5)}
 .lp .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
@@ -82,16 +84,16 @@ html:has(.lp){background:#05070f}
 @keyframes lp-in{from{opacity:0;translate:0 8px}}
 @media (prefers-reduced-motion:reduce){.lp *{animation:none!important;transition:none!important}}
 @media (prefers-reduced-transparency:reduce){.lp-sheet{background:#1c2236;-webkit-backdrop-filter:none;backdrop-filter:none}}
-/* celular/tablet com o formulário em uso (teclado aberto): o card sobe e fica compacto logo abaixo da marca */
+/* celular/tablet com o teclado aberto (data-kb vem do LoginForm): o card sobe e fica compacto logo abaixo da marca */
 @media (max-width:959px){
-  .lp:has(.lp-form:focus-within) .lp-brand{padding-top:max(14px,env(safe-area-inset-top));font-size:1.15rem}
-  .lp:has(.lp-form:focus-within) .lp-brand svg{width:24px;height:24px}
-  .lp:has(.lp-form:focus-within) .lp-sheet{margin:12px max(12px,calc((100% - 480px) / 2)) auto;width:auto;border-radius:28px;border-bottom:1px solid rgba(255,255,255,.22);padding:18px 18px 16px}
-  .lp:has(.lp-form:focus-within) :is(.lp-handle,.lp-head p){display:none}
-  .lp:has(.lp-form:focus-within) .lp-head{align-items:center}
-  .lp:has(.lp-form:focus-within) .lp-head h1{font-size:1.4rem}
-  .lp:has(.lp-form:focus-within) .lp-form{margin-top:16px;gap:10px}
-  .lp:has(.lp-form:focus-within) .lp-switch{min-height:36px}
+  .lp[data-kb] .lp-brand{padding-top:max(14px,env(safe-area-inset-top));font-size:1.15rem}
+  .lp[data-kb] .lp-brand svg{width:24px;height:24px}
+  .lp[data-kb] .lp-sheet{margin:12px max(12px,calc((100% - 480px) / 2)) auto;width:auto;border-radius:28px;border-bottom:1px solid rgba(255,255,255,.22);padding:18px 18px 16px}
+  .lp[data-kb] :is(.lp-handle,.lp-head p){display:none}
+  .lp[data-kb] .lp-head{align-items:center}
+  .lp[data-kb] .lp-head h1{font-size:1.4rem}
+  .lp[data-kb] .lp-form{margin-top:16px;gap:10px}
+  .lp[data-kb] .lp-switch{min-height:36px}
 }
 @media (min-width:640px) and (max-width:959px){
   .lp-sheet{margin:auto auto 28px;border-radius:32px;border-bottom:1px solid rgba(255,255,255,.26)}
@@ -105,3 +107,15 @@ html:has(.lp){background:#05070f}
   .lp-brand{position:absolute;top:0;left:0;padding:36px 56px 0}
   .lp-sheet{margin:auto 0 auto clamp(56px,9vw,140px);max-width:440px;padding:16px 32px 34px;border-radius:32px;border-bottom:1px solid rgba(255,255,255,.26);box-shadow:0 30px 80px rgba(0,0,0,.45),inset 1px 1px 0 rgba(255,255,255,.4),inset -1px -1px 0 rgba(255,255,255,.08),inset 0 0 30px rgba(255,255,255,.04)}
 }
+
+/* código do aluno: 6 caixas sobre um campo real invisível */
+.lp-otp{position:relative;display:block}
+.lp-otp input{position:absolute;inset:0;z-index:1;width:100%;height:100%;opacity:0;font-size:16px;color:transparent;caret-color:transparent;border:0;padding:0;cursor:text}
+.lp-otp-boxes{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.lp-otp-boxes i{position:relative;display:grid;place-items:center;height:62px;border-radius:18px;font-style:normal;font-size:1.6rem;font-weight:800;color:#fff;
+  background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.26);box-shadow:inset 0 2px 6px rgba(0,0,0,.25);transition:border-color .2s,background .2s,transform .2s cubic-bezier(.22,1,.36,1)}
+.lp-otp-boxes i.on{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.4)}
+.lp-otp input:focus+.lp-otp-boxes i.cur{border-color:#fff;background:rgba(255,255,255,.16);box-shadow:0 0 0 3px rgba(121,163,255,.45),inset 0 2px 6px rgba(0,0,0,.2)}
+.lp-otp input:focus+.lp-otp-boxes i.cur:empty::after{content:"";width:2px;height:28px;border-radius:2px;background:#79a3ff;animation:lp-caret 1s steps(1) infinite}
+@keyframes lp-caret{50%{opacity:0}}
+@media (max-width:359px){.lp-otp-boxes{gap:6px}.lp-otp-boxes i{height:54px;font-size:1.35rem}}
