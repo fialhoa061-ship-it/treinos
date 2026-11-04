@@ -117,7 +117,7 @@
   ],
   "narrative": {
     "northStar": "O Painel de Instrumentos",
-    "overview": "O treino lido como um painel de instrumentos escuro: grafite em camadas tonais, um único azul elétrico e números grandes que se leem de relance entre uma série e outra. Cada tela se comporta como um app nativo de academia no celular: coluna única de 480px, alvos de toque de 46 a 58px, pills, cartões muito arredondados e uma barra de abas flutuante com um + azul central.\n\nA densidade é baixa e o ritmo, previsível: cartões grafite sobre fundo quase preto, linhas internas um tom acima, controles mais um tom acima. A profundidade vem do tom, não da sombra. O azul é reservado a progresso, estado ativo e ação principal; tudo o mais é neutro.\n\nO sistema recusa o \"glass\" decorativo e o painel administrativo de tabelas. A tela de login é a exceção deliberada: mantém o visual antigo (vidro líquido, azul #1a7bff) e não faz parte deste sistema.",
+    "overview": "O treino lido como um painel de instrumentos escuro: grafite em camadas tonais, um único azul elétrico e números grandes que se leem de relance entre uma série e outra. Cada tela se comporta como um app nativo de academia no celular: coluna única de 480px, alvos de toque de 46 a 58px, pills, cartões muito arredondados e uma barra de abas flutuante com um + azul central.\n\nA densidade é baixa e o ritmo, previsível: cartões grafite sobre fundo quase preto, linhas internas um tom acima, controles mais um tom acima. A profundidade vem do tom, não da sombra. O azul é reservado a progresso, estado ativo e ação principal; tudo o mais é neutro.\n\nO sistema recusa o \"glass\" decorativo e o painel administrativo de tabelas. A tela de login é a única tela com foto: imagem em tela cheia e uma folha de vidro fosco embaixo (estilos em app/login/login.css). Ali o vidro é justificado porque há uma foto atrás; botão principal branco com seta em círculo escuro.",
     "keyCharacteristics": [
       "Escuro, tonal, quatro degraus de superfície (s1 a s4) sobre o fundo.",
       "Um acento só: azul elétrico em preenchimento, azul claro em texto.",
@@ -143,7 +143,7 @@
       "Do respeitar `prefers-reduced-motion` (sem animação nem transição) e `prefers-contrast: more`."
     ],
     "donts": [
-      "Don't usar vidro, `backdrop-filter`, degradês decorativos ou os tokens do login (`--ink`, `--mute`, `--blue`, `--g-*`, `--l-*`, `--spring`, bloco `:where(.lp)`) fora da tela de login.",
+      "Don't usar vidro, `backdrop-filter` ou degradês decorativos fora da tela de login (onde existem só por causa da foto de fundo).",
       "Don't introduzir uma segunda cor de acento, verde de sucesso ou o verde-limão da referência.",
       "Don't pôr sombra em cartões e linhas que rolam com a página.",
       "Don't montar telas como tabela administrativa; listas são linhas arredondadas com avatar ou número e chevron.",
