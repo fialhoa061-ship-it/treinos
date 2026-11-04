@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { rows, sql } from '@/lib/db';
+import { requireAdmin } from '@/lib/auth';
 import Icon from '../../../Icon';
 import { Chart } from '../../Client';
 import { Top } from '../../ui';
@@ -7,8 +8,9 @@ import { Top } from '../../ui';
 export default async function Historico({ params }: { params: Promise<{ id: string }> }) {
   const id = Number((await params).id);
   if (!Number.isInteger(id) || id < 1 || id > 2147483647) notFound();
+  const uid = await requireAdmin();
   const s = sql();
-  const [st] = await rows(s`select id, name from students where id=${id}`);
+  const [st] = await rows(s`select id, name from students where id=${id} and owner_id=${uid}`);
   if (!st) notFound();
 
   const logs = await rows(s`

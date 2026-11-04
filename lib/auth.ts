@@ -17,14 +17,22 @@ export async function destroySession() {
   (await cookies()).delete(COOKIE);
 }
 
-export async function isAdmin(): Promise<boolean> {
+/** Id do professor logado, ou null. */
+export async function adminId(): Promise<number | null> {
   const t = (await cookies()).get(COOKIE)?.value;
-  if (!t) return false;
-  try { await jwtVerify(t, key()); return true; } catch { return false; }
+  if (!t) return null;
+  try { return Number((await jwtVerify(t, key())).payload.uid) || null; } catch { return null; }
 }
 
-export async function requireAdmin() {
-  if (!(await isAdmin())) redirect('/login');
+export async function isAdmin(): Promise<boolean> {
+  return (await adminId()) !== null;
+}
+
+/** Exige professor logado e devolve o id dele (dono dos alunos). */
+export async function requireAdmin(): Promise<number> {
+  const uid = await adminId();
+  if (!uid) redirect('/login');
+  return uid;
 }
 
 // ---- aluno: sessão por código de 6 dígitos ----

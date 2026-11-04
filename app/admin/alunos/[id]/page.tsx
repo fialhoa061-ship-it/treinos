@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { rows, sql } from '@/lib/db';
+import { requireAdmin } from '@/lib/auth';
 import { ALERTAS, ESFORCO, imc, validade, type Alerta } from '@/lib/util';
 import Icon from '../../../Icon';
 import { Act, Flash, Top, initials } from '../../ui';
@@ -17,14 +18,15 @@ export default async function Aluno({ params, searchParams }: { params: Promise<
   const { m: msg } = await searchParams;
   const id = Number(raw);
   if (!Number.isInteger(id) || id < 1 || id > 2147483647) notFound();
+  const uid = await requireAdmin();
   const s = sql();
-  const [st] = await rows(s`select * from students where id=${id}`);
+  const [st] = await rows(s`select * from students where id=${id} and owner_id=${uid}`);
   if (!st) notFound();
 
   const [workouts, exercises, others, library, [{ sessoes }], retornos, avs, [{ hoje, plan }]] = await Promise.all([
     rows(s`select * from workouts where student_id=${id} order by position, id`),
     rows(s`select e.* from workout_exercises e join workouts w on w.id=e.workout_id where w.student_id=${id} order by e.position, e.id`),
-    rows(s`select id, name from students where id<>${id} order by name`),
+    rows(s`select id, name from students where id<>${id} and owner_id=${uid} order by name`),
     rows(s`select name, video_url, notes, category from exercise_library order by category nulls last, name`),
     rows(s`select count(*)::int as sessoes from sessions where student_id=${id}`),
     // retorno do aluno nos últimos treinos (esforço, sintomas, comentário)

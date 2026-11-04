@@ -95,3 +95,7 @@ create table if not exists password_resets (
   created_at timestamptz not null default now()
 );
 create index if not exists password_resets_user_idx on password_resets (user_id, created_at);
+
+-- cada aluno pertence a um professor: um professor só vê e altera os próprios alunos
+alter table students add column if not exists owner_id int references users(id) on delete cascade;
+create index if not exists students_owner_idx on students (owner_id);

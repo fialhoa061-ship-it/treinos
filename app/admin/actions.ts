@@ -16,6 +16,9 @@ const url = (f: FormData) => (/^https?:\/\//i.test(str(f, 'video_url', 500)) ? s
 const back = (to: string, msg = ''): never => redirect(msg ? `${to}${to.includes('?') ? '&' : '?'}m=${encodeURIComponent(msg)}` : to);
 const student = (id: number | string, msg = '') => back(`/admin/alunos/${id}`, msg);
 
+// aluno/treino só valem se forem do professor logado
+const mine = async (uid: number, sid: number) => (await rows(sql()`select 1 from students where id=${sid} and owner_id=${uid}`)).length > 0;
+
 // código de 6 dígitos ainda não usado por outro aluno (o código sozinho identifica o aluno)
 async function uniqueCode(): Promise<string> {
   for (let i = 0; i < 20; i++) {
@@ -27,7 +30,7 @@ async function uniqueCode(): Promise<string> {
 
 // ---- alunos ----
 export async function saveStudent(f: FormData) {
-  await requireAdmin();
+  const uid = await requireAdmin();
   const id = int(f, 'id'), name = str(f, 'name', 120);
   const fail = (msg: string) => (id ? student(id, msg) : back('/admin/novo', msg));
   if (!name) return fail('Nome obrigatório');
@@ -46,33 +49,34 @@ export async function saveStudent(f: FormData) {
   const s = sql();
   let sid = id;
   if (id) {
-    await s`update students set name=${name}, weight_kg=${weight}, height_m=${height}, age=${age}, goal=${str(f, 'goal', 2000)}, notes=${str(f, 'notes', 4000)} where id=${id}`;
+    if (!(await mine(uid, id))) return back('/admin', 'Aluno não encontrado');
+    await s`update students set name=${name}, weight_kg=${weight}, height_m=${height}, age=${age}, goal=${str(f, 'goal', 2000)}, notes=${str(f, 'notes', 4000)} where id=${id} and owner_id=${uid}`;
   } else {
-    [{ id: sid }] = await rows(s`insert into students (name, weight_kg, height_m, age, goal, notes, access_code)
-      values (${name}, ${weight}, ${height}, ${age}, ${str(f, 'goal', 2000)}, ${str(f, 'notes', 4000)}, ${await uniqueCode()}) returning id`);
+    [{ id: sid }] = await rows(s`insert into students (name, weight_kg, height_m, age, goal, notes, access_code, owner_id)
+      values (${name}, ${weight}, ${height}, ${age}, ${str(f, 'goal', 2000)}, ${str(f, 'notes', 4000)}, ${await uniqueCode()}, ${uid}) returning id`);
   }
   student(sid, 'Salvo');
 }
 
 export async function deleteStudent(f: FormData) {
-  await requireAdmin();
-  await sql()`delete from students where id=${int(f, 'id')}`;
+  const uid = await requireAdmin();
+  await sql()`delete from students where id=${int(f, 'id')} and owner_id=${uid}`;
   back('/admin', 'Aluno removido');
 }
 
 export async function newAccessCode(f: FormData) {
-  await requireAdmin();
+  const uid = await requireAdmin();
   const id = int(f, 'id');
-  await sql()`update students set access_code=${await uniqueCode()} where id=${id}`;
+  await sql()`update students set access_code=${await uniqueCode()} where id=${id} and owner_id=${uid}`;
   student(id, 'Novo código gerado; o antigo não funciona mais');
 }
 
 // ---- validade da ficha ----
 export async function savePlanUntil(f: FormData) {
-  await requireAdmin();
+  const uid = await requireAdmin();
   const id = int(f, 'id'), v = str(f, 'plan_until', 10);
   const ok = /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v));
-  await sql()`update students set plan_until=${ok ? v : null} where id=${id}`;
+  await sql()`update students set plan_until=${ok ? v : null} where id=${id} and owner_id=${uid}`;
   student(id, ok ? 'Data de troca salva' : 'Data de troca removida');
 }
 
@@ -81,8 +85,9 @@ export async function savePlanUntil(f: FormData) {
 const medida = (f: FormData, k: string, max: number) => { const v = num(f, k); return v !== null && v > 0 && v <= max ? Math.round(v * 10) / 10 : null; };
 
 export async function saveAssessment(f: FormData) {
-  await requireAdmin();
+  const uid = await requireAdmin();
   const sid = int(f, 'student_id');
+  if (!(await mine(uid, sid))) return back('/admin', 'Aluno não encontrado');
   const d = str(f, 'measured_on', 10);
   const day = /^\d{4}-\d{2}-\d{2}$/.test(d) && !Number.isNaN(Date.parse(d)) ? d : null;
   const m = {
@@ -100,16 +105,18 @@ export async function saveAssessment(f: FormData) {
 }
 
 export async function deleteAssessment(f: FormData) {
-  await requireAdmin();
+  const uid = await requireAdmin();
   const sid = int(f, 'student_id');
+  if (!(await mine(uid, sid))) return back('/admin', 'Aluno não encontrado');
   await sql()`delete from assessments where id=${int(f, 'id')} and student_id=${sid}`;
   student(sid, 'Avaliação removida');
 }
 
 // ---- treinos ----
 export async function saveWorkout(f: FormData) {
-  await requireAdmin();
+  const uid = await requireAdmin();
   const id = int(f, 'id'), sid = int(f, 'student_id'), name = str(f, 'name', 20);
+  if (!(await mine(uid, sid))) return back('/admin', 'Aluno não encontrado');
   if (!name) return student(sid, 'Nome do treino obrigatório');
   const s = sql();
   if (id) await s`update workouts set name=${name}, focus=${str(f, 'focus', 120)} where id=${id} and student_id=${sid}`;
@@ -119,15 +126,17 @@ export async function saveWorkout(f: FormData) {
 }
 
 export async function deleteWorkout(f: FormData) {
-  await requireAdmin();
+  const uid = await requireAdmin();
   const sid = int(f, 'student_id');
+  if (!(await mine(uid, sid))) return back('/admin', 'Aluno não encontrado');
   await sql()`delete from workouts where id=${int(f, 'id')} and student_id=${sid}`;
   student(sid, 'Treino removido');
 }
 
 export async function moveWorkout(f: FormData) {
-  await requireAdmin();
+  const uid = await requireAdmin();
   const id = int(f, 'id'), sid = int(f, 'student_id'), d = int(f, 'dir') < 0 ? -1 : 1;
+  if (!(await mine(uid, sid))) return back('/admin', 'Aluno não encontrado');
   // renumera 1..n e troca o alvo com o vizinho
   await sql()`
     with ord as (select id, row_number() over (order by position, id) rn from workouts where student_id=${sid}),
@@ -138,10 +147,12 @@ export async function moveWorkout(f: FormData) {
 }
 
 export async function duplicateWorkout(f: FormData) {
-  await requireAdmin();
+  const uid = await requireAdmin();
   const id = int(f, 'id'), to = int(f, 'to_student');
   const s = sql();
-  const [ok] = await rows(s`select 1 as ok from workouts w, students st where w.id=${id} and st.id=${to}`);
+  // origem e destino precisam ser do professor logado
+  const [ok] = await rows(s`select 1 as ok from workouts w join students a on a.id = w.student_id, students b
+    where w.id=${id} and b.id=${to} and a.owner_id=${uid} and b.owner_id=${uid}`);
   if (!ok) return back('/admin', 'Destino inválido');
   await s`
     with nw as (insert into workouts (student_id, name, focus, position)
@@ -152,14 +163,16 @@ export async function duplicateWorkout(f: FormData) {
 }
 
 // ---- exercícios ----
-async function ownerOf(wid: number) {
-  const [r] = await rows(sql()`select student_id from workouts where id=${wid}`);
-  return r?.student_id as number;
+// aluno dono do treino; se não for do professor logado, volta para a lista
+async function ownerOf(uid: number, wid: number): Promise<number> {
+  const [r] = await rows(sql()`select w.student_id from workouts w join students s on s.id = w.student_id where w.id=${wid} and s.owner_id=${uid}`);
+  if (!r) return back('/admin', 'Treino não encontrado');
+  return r.student_id as number;
 }
 
 export async function saveExercise(f: FormData) {
-  await requireAdmin();
-  const id = int(f, 'id'), wid = int(f, 'workout_id'), sid = await ownerOf(wid), name = str(f, 'name', 150);
+  const uid = await requireAdmin();
+  const id = int(f, 'id'), wid = int(f, 'workout_id'), sid = await ownerOf(uid, wid), name = str(f, 'name', 150);
   if (!name) return student(sid, 'Nome do exercício obrigatório');
   const sets = Math.max(1, Math.min(20, int(f, 'sets') || 3));
   const reps = str(f, 'reps', 40) || '10', rest = str(f, 'rest', 40) || '90 s', notes = str(f, 'notes', 2000) || null;
@@ -171,21 +184,21 @@ export async function saveExercise(f: FormData) {
 }
 
 export async function deleteExercise(f: FormData) {
-  await requireAdmin();
-  const wid = int(f, 'workout_id');
+  const uid = await requireAdmin();
+  const wid = int(f, 'workout_id'), sid = await ownerOf(uid, wid);
   await sql()`delete from workout_exercises where id=${int(f, 'id')} and workout_id=${wid}`;
-  student(await ownerOf(wid), 'Exercício removido');
+  student(sid, 'Exercício removido');
 }
 
 export async function moveExercise(f: FormData) {
-  await requireAdmin();
-  const id = int(f, 'id'), wid = int(f, 'workout_id'), d = int(f, 'dir') < 0 ? -1 : 1;
+  const uid = await requireAdmin();
+  const id = int(f, 'id'), wid = int(f, 'workout_id'), d = int(f, 'dir') < 0 ? -1 : 1, sid = await ownerOf(uid, wid);
   await sql()`
     with ord as (select id, row_number() over (order by position, id) rn from workout_exercises where workout_id=${wid}),
          t as (select rn from ord where id=${id})
     update workout_exercises w set position = case when o.id=${id} then (select rn from t)+${d} when o.rn=(select rn from t)+${d} then (select rn from t) else o.rn end
     from ord o where w.id=o.id`;
-  student(await ownerOf(wid));
+  student(sid);
 }
 
 // ---- biblioteca ----
@@ -208,21 +221,37 @@ export async function deleteLibrary(f: FormData) {
 }
 
 // ---- backup ----
-const TABLES = ['exercise_library', 'students', 'assessments', 'workouts', 'workout_exercises', 'sessions', 'set_logs'] as const;
-
+// Importar substitui só os alunos do professor logado (a biblioteca é compartilhada e não é tocada).
+// Tudo que vem do arquivo é filtrado para os alunos do próprio arquivo e entra com o dono forçado.
 export async function importBackup(f: FormData) {
-  await requireAdmin();
+  const uid = await requireAdmin();
   const file = f.get('file');
   let j: Record<string, unknown>;
   try { j = JSON.parse(await (file as File).text()); } catch { return back('/admin/backup', 'Arquivo inválido'); }
   if (j?.app !== 'treinos-backup') return back('/admin/backup', 'Arquivo inválido');
 
+  type R = Record<string, unknown>;
+  const list = (t: string): R[] => (Array.isArray(j[t]) ? (j[t] as R[]) : []);
+  const students: R[] = list('students').map(r => ({ ...r, owner_id: uid }));
+  const sids = new Set(students.map(r => r.id));
+  const assessments = list('assessments').filter(r => sids.has(r.student_id));
+  const workouts = list('workouts').filter(r => sids.has(r.student_id));
+  const wids = new Set(workouts.map(r => r.id));
+  const exercises = list('workout_exercises').filter(r => wids.has(r.workout_id));
+  const eids = new Set(exercises.map(r => r.id));
+  const sessions = list('sessions').filter(r => sids.has(r.student_id) && wids.has(r.workout_id));
+  const ses = new Set(sessions.map(r => r.id));
+  const logs = list('set_logs').filter(r => ses.has(r.session_id) && eids.has(r.workout_exercise_id));
+
   const s = sql();
+  const put = (t: string, data: R[]) => s.query(`insert into ${t} select * from jsonb_populate_recordset(null::${t}, $1::jsonb)`, [JSON.stringify(data)]);
+  const seq = (t: string) => s.query(`select setval(pg_get_serial_sequence('${t}','id'), greatest((select coalesce(max(id), 1) from ${t}), 1), true)`);
   try {
     await s.transaction([
-      ...[...TABLES].reverse().map(t => s.query(`delete from ${t}`)),
-      ...TABLES.map(t => s.query(`insert into ${t} select * from jsonb_populate_recordset(null::${t}, $1::jsonb)`, [JSON.stringify(Array.isArray(j[t]) ? j[t] : [])])),
-      ...TABLES.map(t => s.query(`select setval(pg_get_serial_sequence('${t}','id'), coalesce((select max(id) from ${t}), 1), (select count(*) > 0 from ${t}))`)),
+      s.query('delete from students where owner_id = $1', [uid]), // o cascade leva treinos, sessões, cargas e avaliações
+      put('students', students), put('assessments', assessments), put('workouts', workouts),
+      put('workout_exercises', exercises), put('sessions', sessions), put('set_logs', logs),
+      ...['students', 'assessments', 'workouts', 'workout_exercises', 'sessions', 'set_logs'].map(seq),
     ]);
   } catch { return back('/admin/backup', 'Falha ao importar: nada foi alterado'); }
   revalidatePath('/admin', 'layout');

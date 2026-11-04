@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import { rows, sql } from '@/lib/db';
+import { requireAdmin } from '@/lib/auth';
 import { ALERTAS, imc, validade, type Alerta } from '@/lib/util';
 import Icon from '../Icon';
 import { Flash, Top, initials } from './ui';
 
 export default async function Alunos({ searchParams }: { searchParams: Promise<{ m?: string }> }) {
   const { m } = await searchParams;
+  const uid = await requireAdmin();
   const list = await rows(sql()`
     select s.id, s.name, s.weight_kg, s.height_m, to_char(s.plan_until, 'YYYY-MM-DD') as plan,
       (select count(*)::int from workouts w where w.student_id = s.id) as treinos,
@@ -15,7 +17,7 @@ export default async function Alunos({ searchParams }: { searchParams: Promise<{
         where se.student_id = s.id and se.finished_at > now() - interval '7 days') as alertas,
       (select max(finished_at) from sessions se where se.student_id = s.id and se.alerts is not null
         and se.finished_at > now() - interval '7 days') as alerta_em
-    from students s order by s.name`);
+    from students s where s.owner_id = ${uid} order by s.name`);
   const atencao = list.filter(r => r.alertas?.length).sort((a, b) => +new Date(b.alerta_em) - +new Date(a.alerta_em));
   const nomes = (l: Alerta[]) => l.map(a => ALERTAS[a] ?? a).join(', ');
   const ativos = list.filter(r => r.ultimo && Date.now() - new Date(r.ultimo).getTime() < 7 * 86400_000).length;
