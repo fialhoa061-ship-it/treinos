@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useState } from 'react';
 import { login, studentLogin } from './actions';
 
 type View = 'start' | 'aluno' | 'prof';
@@ -19,21 +19,6 @@ export default function LoginForm() {
   // foco automático só com mouse (computador): no celular abriria o teclado e cobriria o formulário
   const auto = typeof window !== 'undefined' && matchMedia('(hover: hover) and (pointer: fine)').matches;
   const [code, setCode] = useState('');
-
-  // teclado virtual aberto = a área visível encolhe bem abaixo da maior altura já vista.
-  // Marca .lp[data-kb] para o CSS subir o card; ao fechar o teclado ele volta para baixo.
-  useEffect(() => {
-    const vv = window.visualViewport, lp = document.querySelector('.lp');
-    if (!vv || !lp) return;
-    let base = vv.height, w = vv.width;
-    const check = () => {
-      if (vv.width !== w) { w = vv.width; base = vv.height; } // girou o celular
-      base = Math.max(base, vv.height);
-      lp.toggleAttribute('data-kb', vv.height < base * 0.78);
-    };
-    vv.addEventListener('resize', check);
-    return () => { vv.removeEventListener('resize', check); lp.removeAttribute('data-kb'); };
-  }, []);
 
   const head = {
     start: ['Seu treino começa aqui', 'O treino montado pelo seu professor, com séries, cargas e descanso, direto no celular.'],

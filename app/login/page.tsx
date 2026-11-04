@@ -1,3 +1,4 @@
+import type { Viewport } from 'next';
 import { getImageProps } from 'next/image';
 import { redirect } from 'next/navigation';
 import { isAdmin } from '@/lib/auth';
@@ -7,6 +8,8 @@ import wide from '../../public/login-bg-wide.webp';
 import './login.css';
 
 export const metadata = { title: 'Entrar' };
+// teclado do celular encolhe a página (em vez de cobrir): o card fica acima do teclado sem JavaScript
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#05070f', interactiveWidget: 'resizes-content' };
 
 // foto vertical no celular/tablet, horizontal no computador (o navegador baixa só uma)
 const WIDE = '(min-width: 960px)';
