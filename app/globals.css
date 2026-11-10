@@ -576,3 +576,36 @@ html[data-intro=off] .intro{display:none}
 .prof-aluno b{display:block;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .prof-aluno small{display:block;font-size:.8rem;color:var(--fg2)}
 .prof-alunos-nota{font-size:.78rem;margin-top:4px}
+
+/* ---------- ficha concluída (Encerrado.tsx) ---------- */
+.fim-hero{position:relative;overflow:hidden;padding:22px 22px 26px;border-radius:var(--r-xl);background:var(--accent);color:#fff;
+  box-shadow:0 18px 40px rgba(47,107,255,.28);animation:fin-card .6s var(--ease) both}
+.fim-tag{position:relative;z-index:1;display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 12px;border-radius:999px;background:rgba(10,20,60,.28);font-size:.8rem;font-weight:700}
+.fim-hero h2{position:relative;z-index:1;margin:18px 0 10px;font-size:clamp(2.4rem,11vw,3rem);line-height:.98;font-weight:800;letter-spacing:-.035em;color:#fff}
+.fim-hero p{position:relative;z-index:1;margin:0;max-width:24ch;font-size:.98rem;line-height:1.45;color:#fff}
+.fim-hero p b{font-weight:800}
+.fim-arc{position:absolute;right:-46px;bottom:-54px;width:210px;height:210px;fill:none;stroke:#fff;stroke-linecap:round;stroke-linejoin:round;opacity:.22}
+.fim-arc circle{stroke-width:14}
+.fim-arc path{stroke-width:16;stroke-dasharray:110;stroke-dashoffset:0;animation:fim-tick .7s var(--ease) .35s both}
+@keyframes fim-tick{from{stroke-dashoffset:110}}
+.fim-h{font-size:1.05rem;margin:0 0 12px}
+.fim-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.fim-stats div{display:flex;flex-direction:column;gap:2px;padding:14px;border-radius:var(--r-md);background:var(--s2)}
+.fim-stats b{font-size:2.3rem;line-height:1;font-weight:800;letter-spacing:-.03em;color:var(--accent-tx)}
+.fim-stats span{font-size:.8rem;color:var(--fg2)}
+.fim-sub{margin:16px 2px 8px;font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--fg3)}
+.fim .muted.fim-sub{text-transform:none;letter-spacing:0;font-weight:500;font-size:.88rem;color:var(--fg2)}
+.fim-ganhos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;counter-reset:g}
+.fim-ganhos li{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--r-md);background:var(--s2);counter-increment:g}
+.fim-ganhos li::before{content:counter(g);display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:10px;background:var(--s3);color:var(--accent-tx);font-weight:800;font-size:.9rem}
+.fim-ganhos .grow{flex:1;min-width:0}
+.fim-ganhos b{display:block;font-size:.94rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fim-ganhos small{display:block;font-size:.8rem;color:var(--fg2)}
+.fim-ganhos em{flex:none;font-style:normal;font-weight:800;font-size:.9rem;color:var(--accent-tx);padding:4px 10px;border-radius:999px;background:rgba(47,107,255,.16)}
+.fim-next{display:flex;gap:14px;align-items:flex-start}
+.fim-next .grow{flex:1;min-width:0}
+.fim-next h2{font-size:1.05rem;margin:2px 0 6px}
+.fim-next p{color:var(--fg2);font-size:.92rem;line-height:1.45}
+.fim-repetir{align-self:center;min-height:44px;display:inline-flex;align-items:center;font-size:.92rem;color:var(--fg2);text-decoration:underline;text-underline-offset:4px}
+.fim-repetir:hover{color:var(--fg)}
+.offline.vencida svg{color:var(--danger)}

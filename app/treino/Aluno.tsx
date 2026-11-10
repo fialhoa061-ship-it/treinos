@@ -44,10 +44,10 @@ function beep() {
   } catch { /* sem áudio */ }
 }
 
-export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId, sessions, today, evo = [], pesos = [], exclusaoPedida = false }: {
+export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId, sessions, today, evo = [], pesos = [], exclusaoPedida = false, fichaVencida = null }: {
   sid: number; name: string; notes: string | null; workouts: Workout[];
   last: Record<string, LastSet[]>; lastWorkoutId: number | null; sessions: Dia[]; today: string;
-  evo?: Ponto[]; pesos?: { d: string; w: number }[]; exclusaoPedida?: boolean;
+  evo?: Ponto[]; pesos?: { d: string; w: number }[]; exclusaoPedida?: boolean; fichaVencida?: string | null;
 }) {
   const pkey = `pend:${sid}`;
   const wkey = (id: number) => `treino:${sid}:${id}`;
@@ -190,6 +190,7 @@ export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId,
     <>
     <main className="screen" inert={!!summary || ask}>
       <Header first={first} ini={ini} sub={feitas ? 'Bora terminar esse treino' : 'Vamos começar o treino de hoje'} />
+      {fichaVencida && <p className="offline vencida" role="status"><Icon name="calendar" size={18} />Sua ficha venceu em {fichaVencida.slice(8, 10)}/{fichaVencida.slice(5, 7)}. Você está repetindo a ficha atual até o seu professor montar a próxima.</p>}
       {!online && <p className="offline" role="status"><Icon name="info" size={18} />Sem internet. Pode treinar normalmente: tudo fica salvo no celular e é enviado quando a conexão voltar.</p>}
 
       <section className="panel today" aria-label="Progresso do treino">
