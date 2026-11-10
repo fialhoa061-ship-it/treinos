@@ -561,3 +561,7 @@ html[data-intro=off] .intro{display:none}
 /* linha de opção com ícone: ícone ao lado do texto */
 .opt>span:first-child{display:inline-flex;align-items:center;gap:10px;min-width:0}
 .opt>span:first-child>svg{color:var(--accent-tx)}
+
+/* perfil: esqueci minha senha atual */
+.esqueci{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px 8px;padding:12px 0 8px;font-size:.88rem;color:var(--fg2)}
+.esqueci .link{font-size:.88rem;text-decoration:underline;text-underline-offset:3px;cursor:pointer}

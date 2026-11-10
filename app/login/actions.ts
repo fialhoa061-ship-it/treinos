@@ -4,9 +4,8 @@ import bcrypt from 'bcryptjs';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { rows, sql } from '@/lib/db';
-import { createHash, randomBytes } from 'node:crypto';
 import { createSession, createStudentSession, destroySession, destroyStudentSession } from '@/lib/auth';
-import { appUrl, sendResetEmail } from '@/lib/mail';
+import { sendResetLink, sha } from '@/lib/reset';
 
 // 5 erros por IP e por tipo de acesso bloqueiam por 15 minutos
 async function throttle(kind: string): Promise<{ key: string; blocked: boolean }> {
@@ -62,7 +61,6 @@ export async function studentLogout() {
 }
 
 // ---- esqueci minha senha (professor) ----
-const sha = (t: string) => createHash('sha256').update(t).digest('hex');
 const OK_RESET = 'ok:Se este e-mail for de um professor cadastrado, enviamos um link para criar uma nova senha. Confira a caixa de entrada e o spam.';
 
 /** Pede o link por e-mail. A resposta é sempre a mesma, exista o e-mail ou não. */
@@ -74,13 +72,7 @@ export async function requestReset(_prev: string, form: FormData): Promise<strin
   const s = sql();
   await s`insert into login_attempts (ip) values (${key})`; // cada pedido conta: no máximo 5 a cada 15 min
   const [u] = await rows(s`select id, email from users where lower(email) = lower(${email})`);
-  if (u) {
-    const token = randomBytes(32).toString('base64url');
-    await s`update password_resets set used_at = now() where user_id = ${u.id} and used_at is null`; // só o último link vale
-    await s`insert into password_resets (user_id, token_hash, expires_at) values (${u.id}, ${sha(token)}, now() + interval '1 hour')`;
-    try { await sendResetEmail(u.email, `${appUrl()}/login/redefinir?t=${token}`); }
-    catch (e) { console.error('reset: falha ao enviar e-mail', e); }
-  }
+  if (u) await sendResetLink(u.id, u.email);
   return OK_RESET;
 }
 

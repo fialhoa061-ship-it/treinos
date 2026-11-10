@@ -4,7 +4,7 @@ import { currentProf } from '@/lib/auth';
 import Icon from '../../Icon';
 import { Flash, initials } from '../ui';
 import { logout } from '../../login/actions';
-import { changePassword, deleteMyAccount, saveMyName } from '../acoes-conta';
+import { changePassword, deleteMyAccount, saveMyName, sendMyResetLink } from '../acoes-conta';
 
 export default async function Perfil({ searchParams }: { searchParams: Promise<{ m?: string }> }) {
   const { m } = await searchParams;
@@ -43,6 +43,10 @@ export default async function Perfil({ searchParams }: { searchParams: Promise<{
             <label className="field"><span>Senha nova (mín. 8 caracteres)</span><input type="password" name="password" required minLength={8} autoComplete="new-password" /></label>
             <label className="field"><span>Repita a senha nova</span><input type="password" name="confirm" required minLength={8} autoComplete="new-password" /></label>
             <button className="btn primary">Alterar senha</button>
+          </form>
+          <form action={sendMyResetLink} className="esqueci">
+            <span>Não lembra a senha atual?</span>
+            <button className="link">Esqueci minha senha atual</button>
           </form>
         </details>
         {me.is_owner && (

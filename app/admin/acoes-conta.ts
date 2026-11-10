@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { rows, sql } from '@/lib/db';
 import { checkPassword, currentProf, destroySession } from '@/lib/auth';
 import { appUrl, sendInviteEmail } from '@/lib/mail';
+import { sendResetLink } from '@/lib/reset';
 
 const str = (f: FormData, k: string, max = 255) => String(f.get(k) ?? '').trim().slice(0, max);
 const go = (to: string, msg: string): never => redirect(`${to}?m=${encodeURIComponent(msg)}`);
@@ -31,6 +32,15 @@ export async function changePassword(f: FormData) {
   if (!(await checkPassword(me.id, atual))) return perfil('Senha atual incorreta');
   await sql()`update users set password_hash = ${await bcrypt.hash(nova, 10)} where id = ${me.id}`;
   perfil('Senha alterada');
+}
+
+/** "Esqueci minha senha atual": envia o link de criar nova senha para o e-mail do professor logado. */
+export async function sendMyResetLink() {
+  const me = await currentProf();
+  const [{ n }] = await rows(sql()`select count(*)::int as n from password_resets where user_id = ${me.id} and created_at > now() - interval '1 hour'`);
+  if (n >= 3) return perfil('Você já pediu 3 links na última hora. Confira seu e-mail (e o spam) ou tente mais tarde');
+  const ok = await sendResetLink(me.id, me.email);
+  perfil(ok ? `Enviamos um link para ${me.email}. Ele vale 1 hora` : 'Não foi possível enviar o e-mail agora. Tente de novo');
 }
 
 /**
