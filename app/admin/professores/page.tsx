@@ -13,17 +13,23 @@ export default async function Professores({ searchParams }: { searchParams: Prom
   const me = await currentProf();
   if (!me.is_owner) redirect('/admin/perfil');
   const s = sql();
-  const [profs, convites, eventos] = await Promise.all([
+  const [profs, convites, eventos, todos] = await Promise.all([
     rows(s`select u.id, u.email, u.name, u.is_owner, u.disabled_at, (select count(*)::int from students st where st.owner_id = u.id) as alunos
       from users u order by u.is_owner desc, (u.disabled_at is not null), u.name nulls last, u.email`),
     rows(s`select id, email, to_char(expires_at at time zone 'America/Sao_Paulo', 'DD/MM') as ate, (expires_at < now()) as vencido from invites where accepted_at is null order by created_at desc`),
     rows(s`select id, user_email, user_name, students, created_at from account_events where kind = 'excluiu_conta' order by created_at desc limit 20`),
+    // visão do principal: só nome e atividade dos alunos de cada professor (sem treino, cargas, sintomas ou avaliações)
+    rows(s`select st.id, st.name, st.owner_id, (st.consent_at is not null) as termo,
+      (select max(finished_at) from sessions se where se.student_id = st.id) as ultimo
+      from students st order by st.name`),
   ]);
+  const porProf = new Map<number, typeof todos>();
+  for (const a of todos) (porProf.get(a.owner_id) ?? porProf.set(a.owner_id, []).get(a.owner_id)!).push(a);
 
   return (
     <>
       <Flash m={m} />
-      <Top title="Professores" sub="Cada professor vê e gerencia só os próprios alunos" back="/admin/perfil" />
+      <Top title="Professores" sub={`${profs.length} ${profs.length === 1 ? 'professor' : 'professores'} · ${todos.length} ${todos.length === 1 ? 'aluno' : 'alunos'} no total`} back="/admin/perfil" />
 
       <div className="list">
         {profs.map(p => (
@@ -34,8 +40,24 @@ export default async function Professores({ searchParams }: { searchParams: Prom
                 <b>{p.name || p.email}{p.id === me.id ? ' (você)' : ''}</b>
                 <small>{p.is_owner ? 'Principal · ' : p.disabled_at ? `Desligado em ${dt(p.disabled_at)} · ` : ''}{p.alunos} {p.alunos === 1 ? 'aluno' : 'alunos'}{p.name ? ` · ${p.email}` : ''}</small>
               </span>
-              {!p.is_owner && <span className="ibtn sq"><Icon name="right" size={16} /></span>}
+              <span className="ibtn sq"><Icon name="right" size={16} /></span>
             </summary>
+            <div className="body">
+              <div className="prof-alunos">
+                <p className="prof-alunos-t">Alunos de {p.id === me.id ? 'você' : (p.name || p.email).split(' ')[0]} <span>{p.alunos}</span></p>
+                {(porProf.get(p.id) ?? []).length === 0
+                  ? <p className="muted" style={{ fontSize: '.86rem' }}>Nenhum aluno cadastrado.</p>
+                  : (porProf.get(p.id) ?? []).map(a => (
+                    <div className="prof-aluno" key={a.id}>
+                      <span className="avatar">{initials(a.name)}</span>
+                      <span className="grow"><b>{a.name}</b>
+                        <small>{a.ultimo ? `último treino ${dt(a.ultimo)}` : 'ainda não treinou'}{a.termo ? '' : ' · termo pendente'}</small>
+                      </span>
+                    </div>
+                  ))}
+                <p className="muted prof-alunos-nota">Você vê só o nome e a atividade. Treinos, cargas, sintomas e avaliações ficam apenas com o professor do aluno.</p>
+              </div>
+            </div>
             {!p.is_owner && (
               <div className="body">
                 {p.disabled_at ? (

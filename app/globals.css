@@ -565,3 +565,14 @@ html[data-intro=off] .intro{display:none}
 /* perfil: esqueci minha senha atual */
 .esqueci{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px 8px;padding:12px 0 8px;font-size:.88rem;color:var(--fg2)}
 .esqueci .link{font-size:.88rem;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+/* professores: alunos de cada professor (visão do principal) */
+.prof-alunos{display:flex;flex-direction:column;gap:6px}
+.prof-alunos-t{display:flex;justify-content:space-between;margin:0 2px 2px;font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-tx)}
+.prof-alunos-t span{color:var(--fg3)}
+.prof-aluno{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:var(--r-md);background:var(--s3)}
+.prof-aluno .avatar{width:36px;height:36px;font-size:.82rem;background:var(--s4)}
+.prof-aluno .grow{flex:1;min-width:0}
+.prof-aluno b{display:block;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prof-aluno small{display:block;font-size:.8rem;color:var(--fg2)}
+.prof-alunos-nota{font-size:.78rem;margin-top:4px}

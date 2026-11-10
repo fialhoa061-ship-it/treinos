@@ -21,7 +21,7 @@ export default function Termo({ nome, menor: menorConhecido, idadeConhecida }: {
         <ul className="termo-list">
           <li><b>O que o app guarda:</b> seu cadastro (nome, idade, peso, altura, objetivo), seus treinos e cargas, o esforço e os sintomas que você informar ao finalizar, e as avaliações físicas.</li>
           <li><b>Para quê:</b> só para o seu professor montar e acompanhar o seu treino com segurança.</li>
-          <li><b>Quem vê:</b> somente o seu professor. Nada é vendido nem usado para propaganda.</li>
+          <li><b>Quem vê:</b> seus treinos e dados de saúde, só o seu professor. O responsável pelo app vê apenas o seu nome e quando você treinou. Nada é vendido nem usado para propaganda.</li>
           <li><b>Seus direitos:</b> baixar seus dados ou pedir a exclusão a qualquer momento, em “Meus dados e privacidade”.</li>
         </ul>
         <a className="opt" href="/privacidade" target="_blank" rel="noopener">

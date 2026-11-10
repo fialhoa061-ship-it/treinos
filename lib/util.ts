@@ -26,4 +26,4 @@ export function validade(d: string | null | undefined): { dias: number; texto: s
 }
 
 /** Versão do termo de consentimento (LGPD). Ao mudar o texto da política, suba o número: todos aceitam de novo. */
-export const TERMO_VERSAO = 1;
+export const TERMO_VERSAO = 2; // v2: o professor principal vê nome e atividade dos alunos de cada professor

@@ -19,7 +19,7 @@ export default function Privacidade() {
           <h2>Em poucas palavras</h2>
           <ul>
             <li>O app guarda os dados do seu treino para o <b>seu professor</b> montar e acompanhar o seu treino com segurança.</li>
-            <li>Só o seu professor vê os seus dados. Eles não são vendidos nem usados para propaganda.</li>
+            <li>Só o seu professor vê os seus dados de treino e saúde. O responsável pelo app vê apenas o seu nome e quando você treinou. Nada é vendido nem usado para propaganda.</li>
             <li>Você pode baixar os seus dados ou pedir para apagá-los quando quiser.</li>
             <li>Menores de 18 anos só usam o app com autorização do responsável.</li>
           </ul>
@@ -28,6 +28,7 @@ export default function Privacidade() {
         <section className="panel">
           <h2>Quem cuida dos seus dados</h2>
           <p>O responsável pelos seus dados é o <b>professor que montou o seu treino</b> e cadastrou você no app. Dúvidas ou pedidos sobre os seus dados podem ser feitos diretamente a ele.</p>
+          <p>O <b>professor responsável pelo app</b>, que administra os professores cadastrados, vê apenas a lista de alunos de cada professor: o seu <b>nome</b>, a data do seu <b>último treino</b> e se você já aceitou este termo. Ele <b>não</b> vê seus treinos, cargas, sintomas nem avaliações.</p>
         </section>
 
         <section className="panel">
