@@ -1,4 +1,4 @@
-// Biblioteca de exercícios por categoria (populações especiais incluídas).
+// Biblioteca de exercícios por categoria (populações especiais e adolescentes incluídos).
 // Uso: node --env-file=.env.local scripts/biblioteca.mjs
 // - Cria a coluna "category" se faltar.
 // - Insere os exercícios que ainda não existem (pelo nome).
@@ -13,6 +13,7 @@ const yt = q => `https://www.youtube.com/results?search_query=${encodeURICompone
 const SEG_CARD = 'Somente com liberação médica. Intensidade leve a moderada (esforço 11–13 de 20, consegue conversar). Respire sem prender o ar. Pare se sentir dor no peito, tontura, falta de ar fora do normal ou palpitação.';
 const SEG_IDOSO = 'Movimento lento e controlado, com apoio por perto. Respire sem prender o ar. Pare se sentir dor, tontura ou desequilíbrio.';
 const SEG_OBES = 'Baixo impacto, preservando joelhos e coluna. Ritmo em que ainda dá para conversar; aumente a duração antes da intensidade.';
+const SEG_TEEN = 'Para adolescentes a partir de 12–13 anos, com autorização dos responsáveis e supervisão do professor. Técnica antes da carga: peso do corpo ou carga leve, 1–3 séries de 8–15 repetições, sem testes de carga máxima. Aumente a carga aos poucos (5–10%) só com a execução perfeita.';
 
 // [categoria, nome, observações, termo extra para a busca do vídeo]
 const L = [
@@ -216,6 +217,29 @@ const L = [
   ['Obesidade e baixo impacto', 'Elíptico para iniciantes', `${SEG_OBES} Sem impacto, trabalha corpo inteiro.`, 'elíptico iniciante'],
   ['Obesidade e baixo impacto', 'Exercícios na água (hidroginástica)', `${SEG_OBES} A água sustenta parte do peso e protege as articulações.`, 'hidroginástica para obesos'],
   ['Obesidade e baixo impacto', 'Remo ergômetro leve', `${SEG_OBES} Ritmo leve e técnica primeiro: pernas, tronco e braços.`, 'remo ergômetro iniciante'],
+  // ---------------- Adolescentes (12+ anos) ----------------
+  ['Adolescentes (12+ anos)', 'Agachamento com peso do corpo', `${SEG_TEEN} Base do treino de pernas: pés na largura dos ombros, quadril para trás, joelhos na direção dos pés.`, 'agachamento livre peso corporal iniciante'],
+  ['Adolescentes (12+ anos)', 'Agachamento goblet com carga leve', `${SEG_TEEN} Próximo passo depois do agachamento sem peso: halter leve junto ao peito, tronco firme.`, 'agachamento goblet iniciante'],
+  ['Adolescentes (12+ anos)', 'Passada sem carga', `${SEG_TEEN} Passo à frente e joelho de trás desce em direção ao chão. Trabalha força e equilíbrio.`, 'passada afundo iniciante'],
+  ['Adolescentes (12+ anos)', 'Ponte de glúteo com uma perna', `${SEG_TEEN} Deitado, uma perna estendida no ar: suba o quadril sem girar a bacia.`, 'ponte de glúteo unilateral'],
+  ['Adolescentes (12+ anos)', 'Flexão de braço inclinada no banco', `${SEG_TEEN} Mãos no banco, corpo reto. Quando fizer 15 repetições perfeitas, passe para o chão.`, 'flexão inclinada no banco'],
+  ['Adolescentes (12+ anos)', 'Remada invertida na barra baixa', `${SEG_TEEN} Deitado sob uma barra baixa (Smith), puxe o peito até a barra com o corpo reto. Prepara para a barra fixa.`, 'remada invertida australiana'],
+  ['Adolescentes (12+ anos)', 'Puxada na frente com carga leve', `${SEG_TEEN} Puxe a barra até o alto do peito, sem jogar o tronco para trás.`, 'puxada frontal iniciante'],
+  ['Adolescentes (12+ anos)', 'Supino com halteres leves', `${SEG_TEEN} Halteres leves e controle total na descida. Com halteres cada braço trabalha por igual.`, 'supino com halteres iniciante'],
+  ['Adolescentes (12+ anos)', 'Desenvolvimento com halteres leves (em pé)', `${SEG_TEEN} Abdômen firme e sem arquear a lombar ao subir os pesos.`, 'desenvolvimento com halteres em pé iniciante'],
+  ['Adolescentes (12+ anos)', 'Dobradiça de quadril com bastão', `${SEG_TEEN} Bastão encostado na cabeça, costas e quadril: incline o tronco levando o quadril para trás sem perder o contato. Ensina o movimento do levantamento terra.`, 'hip hinge com bastão'],
+  ['Adolescentes (12+ anos)', 'Levantamento terra com kettlebell leve', `${SEG_TEEN} Só depois de dominar a dobradiça de quadril. Coluna neutra, empurre o chão com os pés.`, 'levantamento terra kettlebell iniciante'],
+  ['Adolescentes (12+ anos)', 'Arremesso de medicine ball no peito', `${SEG_TEEN} Bola leve (1–3 kg), lance contra a parede ou para um colega. Desenvolve potência de forma segura.`, 'arremesso medicine ball peito parede'],
+  ['Adolescentes (12+ anos)', 'Arremesso de medicine ball no chão', `${SEG_TEEN} Bola leve acima da cabeça e lance no chão com força, agachando junto.`, 'medicine ball slam'],
+  ['Adolescentes (12+ anos)', 'Saltos com aterrissagem controlada', `${SEG_TEEN} Salte e aterrisse suave, joelhos flexionados e alinhados aos pés. Saltos fortalecem os ossos em crescimento; poucas repetições, com descanso.`, 'saltos aterrissagem correta'],
+  ['Adolescentes (12+ anos)', 'Salto lateral sobre linha', `${SEG_TEEN} Saltos rápidos de um lado para o outro de uma linha no chão. Coordenação e agilidade.`, 'saltos laterais agilidade'],
+  ['Adolescentes (12+ anos)', 'Escada de agilidade', `${SEG_TEEN} Padrões de passos na escada no chão (dentro, fora, lateral). Coordenação e velocidade de pés.`, 'escada de agilidade exercícios'],
+  ['Adolescentes (12+ anos)', 'Corrida com mudança de direção', `${SEG_TEEN} Corrida curta entre cones, freando e mudando de direção com o corpo baixo.`, 'corrida mudança de direção cones'],
+  ['Adolescentes (12+ anos)', 'Caminhada do urso', `${SEG_TEEN} Quatro apoios com joelhos um pouco acima do chão, caminhe à frente e para trás. Força geral e coordenação.`, 'bear crawl exercício'],
+  ['Adolescentes (12+ anos)', 'Caminhada do caranguejo', `${SEG_TEEN} Mãos e pés no chão, barriga para cima, quadril alto. Ombros, glúteos e coordenação.`, 'caminhada do caranguejo exercício'],
+  ['Adolescentes (12+ anos)', 'Prancha com toque no ombro', `${SEG_TEEN} Em prancha alta, toque o ombro oposto sem deixar o quadril balançar.`, 'prancha com toque no ombro'],
+  ['Adolescentes (12+ anos)', 'Equilíbrio em um pé com alcance', `${SEG_TEEN} Em um pé, incline e alcance pontos à frente e aos lados. Previne lesões de tornozelo e joelho.`, 'equilíbrio unipodal com alcance'],
+  ['Adolescentes (12+ anos)', 'Pular corda (iniciante)', `${SEG_TEEN} Séries curtas de 20–30 s, saltos baixos na ponta dos pés.`, 'pular corda iniciante'],
 ];
 
 await sql`alter table exercise_library add column if not exists category text`;
