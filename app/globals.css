@@ -501,3 +501,63 @@ html[data-intro=off] .intro{display:none}
 .evo-d .big small{font-size:.86rem}
 .evo-d .trio{margin-top:12px}
 .evo-hint{margin-top:14px;font-size:.88rem}
+
+/* ---------- painel da semana (admin/page.tsx) ---------- */
+.pn h2{display:flex;align-items:center;gap:8px;font-size:1rem;margin:4px 4px 10px}
+.pn h2 svg{color:var(--accent-tx)}
+.pn.warn{box-shadow:inset 0 0 0 1px rgba(255,107,125,.3);background:linear-gradient(rgba(255,107,125,.07),rgba(255,107,125,.07)),var(--s1)}
+.pn.warn h2,.pn.warn h2 svg{color:var(--danger)}
+.pn-nota{margin:-4px 4px 10px;color:var(--fg2);font-size:.84rem;line-height:1.4}
+.pn-list{display:flex;flex-direction:column;gap:6px}
+.pn-row{display:flex;align-items:center;gap:12px;padding:10px 12px 10px 10px;border-radius:var(--r-md);background:var(--s2);color:var(--fg);text-decoration:none;transition:background .2s}
+.pn-row:hover{background:var(--s3)}
+.pn-row .avatar{width:40px;height:40px;font-size:.9rem}
+.pn-row .grow{flex:1;min-width:0}
+.pn-row b{display:block;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pn-row small{display:block;color:var(--fg2);font-size:.82rem}
+.pn-row small.pn-warn{color:var(--danger);font-weight:700}
+.pn-row>svg{color:var(--fg3);flex:none}
+
+/* ---------- modelos de ficha ---------- */
+.tpl-w{padding:12px 14px;border-radius:var(--r-md);background:var(--s3)}
+.tpl-w b{display:block;font-size:.95rem;margin-bottom:6px}
+.tpl-w ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:3px}
+.tpl-w li{font-size:.88rem;color:var(--fg)}
+.tpl-w li span{color:var(--fg2);margin-left:4px}
+
+/* ---------- termo (LGPD) e privacidade ---------- */
+.termo .top .dot{width:48px;height:48px}
+.termo-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:10px;line-height:1.45;font-size:.94rem}
+.termo-list b{color:var(--fg)}
+.check{display:flex;gap:12px;align-items:flex-start;cursor:pointer;font-size:.94rem;line-height:1.45}
+.app .check input{flex:none;width:24px;height:24px;margin:1px 0 0;accent-color:var(--accent);cursor:pointer}
+.termo-resp{padding:14px;border-radius:var(--r-md);background:var(--s2)}
+.termo-resp .muted{font-size:.86rem;margin-bottom:4px}
+.termo-err{color:var(--danger)}
+.doc .panel h2{margin-bottom:10px}
+.doc .panel p,.doc .panel li{color:var(--fg2);line-height:1.55;font-size:.95rem}
+.doc .panel p+p{margin-top:10px}
+.doc .panel ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px}
+.doc .panel b{color:var(--fg)}
+.app .termo-resp :where(input:not([type=checkbox])){background:var(--s3)}
+.app .termo-resp :where(input:not([type=checkbox])):hover{background:var(--s4)}
+.termo-resp legend{float:left;width:100%;margin-bottom:8px;padding:0}
+.termo-resp legend+*{clear:both}
+
+/* ---------- perfil e professores ---------- */
+.perfil{display:flex;align-items:center;gap:16px}
+.perfil .grow{flex:1;min-width:0}
+.perfil b{display:block;font-size:1.25rem;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.perfil small{display:block;color:var(--fg2);font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.avatar.xl{width:72px;height:72px;font-size:1.5rem;background:var(--accent);color:#fff}
+.perfil-nota{text-align:center;font-size:.84rem;padding:0 12px}
+.danger-zone{border-color:rgba(255,107,125,.35)}
+.danger-zone>summary{color:var(--danger)}
+.danger-zone[open]{border-color:rgba(255,107,125,.35);background:rgba(255,107,125,.05)}
+.exr.off{opacity:.7}
+.exr.off>summary small{color:var(--danger)}
+.exr .body>form+form{padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
+
+/* linha de opção com ícone: ícone ao lado do texto */
+.opt>span:first-child{display:inline-flex;align-items:center;gap:10px;min-width:0}
+.opt>span:first-child>svg{color:var(--accent-tx)}

@@ -17,6 +17,10 @@ export async function GET() {
     workout_exercises: await s`select e.* from workout_exercises e join workouts w on w.id = e.workout_id join students st on st.id = w.student_id where st.owner_id = ${uid} order by e.id`,
     sessions: await s`select se.* from sessions se join students st on st.id = se.student_id where st.owner_id = ${uid} order by se.id`,
     set_logs: await s`select l.* from set_logs l join sessions se on se.id = l.session_id join students st on st.id = se.student_id where st.owner_id = ${uid} order by l.id`,
+    // modelos de ficha do professor (só para guardar: importar o backup não altera os modelos)
+    templates: await s`select * from templates where owner_id = ${uid} order by id`,
+    template_workouts: await s`select tw.* from template_workouts tw join templates t on t.id = tw.template_id where t.owner_id = ${uid} order by tw.id`,
+    template_exercises: await s`select e.* from template_exercises e join template_workouts tw on tw.id = e.template_workout_id join templates t on t.id = tw.template_id where t.owner_id = ${uid} order by e.id`,
   };
   return new Response(JSON.stringify(out, null, 2), {
     headers: {

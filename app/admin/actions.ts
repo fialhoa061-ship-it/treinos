@@ -49,7 +49,7 @@ export async function saveStudent(f: FormData) {
   const s = sql();
   let sid = id;
   if (id) {
-    if (!(await mine(uid, id))) return back('/admin', 'Aluno não encontrado');
+    if (!(await mine(uid, id))) return back('/admin/alunos', 'Aluno não encontrado');
     await s`update students set name=${name}, weight_kg=${weight}, height_m=${height}, age=${age}, goal=${str(f, 'goal', 2000)}, notes=${str(f, 'notes', 4000)} where id=${id} and owner_id=${uid}`;
   } else {
     [{ id: sid }] = await rows(s`insert into students (name, weight_kg, height_m, age, goal, notes, access_code, owner_id)
@@ -61,7 +61,7 @@ export async function saveStudent(f: FormData) {
 export async function deleteStudent(f: FormData) {
   const uid = await requireAdmin();
   await sql()`delete from students where id=${int(f, 'id')} and owner_id=${uid}`;
-  back('/admin', 'Aluno removido');
+  back('/admin/alunos', 'Aluno removido');
 }
 
 export async function newAccessCode(f: FormData) {
@@ -87,7 +87,7 @@ const medida = (f: FormData, k: string, max: number) => { const v = num(f, k); r
 export async function saveAssessment(f: FormData) {
   const uid = await requireAdmin();
   const sid = int(f, 'student_id');
-  if (!(await mine(uid, sid))) return back('/admin', 'Aluno não encontrado');
+  if (!(await mine(uid, sid))) return back('/admin/alunos', 'Aluno não encontrado');
   const d = str(f, 'measured_on', 10);
   const day = /^\d{4}-\d{2}-\d{2}$/.test(d) && !Number.isNaN(Date.parse(d)) ? d : null;
   const m = {
@@ -107,7 +107,7 @@ export async function saveAssessment(f: FormData) {
 export async function deleteAssessment(f: FormData) {
   const uid = await requireAdmin();
   const sid = int(f, 'student_id');
-  if (!(await mine(uid, sid))) return back('/admin', 'Aluno não encontrado');
+  if (!(await mine(uid, sid))) return back('/admin/alunos', 'Aluno não encontrado');
   await sql()`delete from assessments where id=${int(f, 'id')} and student_id=${sid}`;
   student(sid, 'Avaliação removida');
 }
@@ -116,7 +116,7 @@ export async function deleteAssessment(f: FormData) {
 export async function saveWorkout(f: FormData) {
   const uid = await requireAdmin();
   const id = int(f, 'id'), sid = int(f, 'student_id'), name = str(f, 'name', 20);
-  if (!(await mine(uid, sid))) return back('/admin', 'Aluno não encontrado');
+  if (!(await mine(uid, sid))) return back('/admin/alunos', 'Aluno não encontrado');
   if (!name) return student(sid, 'Nome do treino obrigatório');
   const s = sql();
   if (id) await s`update workouts set name=${name}, focus=${str(f, 'focus', 120)} where id=${id} and student_id=${sid}`;
@@ -128,7 +128,7 @@ export async function saveWorkout(f: FormData) {
 export async function deleteWorkout(f: FormData) {
   const uid = await requireAdmin();
   const sid = int(f, 'student_id');
-  if (!(await mine(uid, sid))) return back('/admin', 'Aluno não encontrado');
+  if (!(await mine(uid, sid))) return back('/admin/alunos', 'Aluno não encontrado');
   await sql()`delete from workouts where id=${int(f, 'id')} and student_id=${sid}`;
   student(sid, 'Treino removido');
 }
@@ -136,7 +136,7 @@ export async function deleteWorkout(f: FormData) {
 export async function moveWorkout(f: FormData) {
   const uid = await requireAdmin();
   const id = int(f, 'id'), sid = int(f, 'student_id'), d = int(f, 'dir') < 0 ? -1 : 1;
-  if (!(await mine(uid, sid))) return back('/admin', 'Aluno não encontrado');
+  if (!(await mine(uid, sid))) return back('/admin/alunos', 'Aluno não encontrado');
   // renumera 1..n e troca o alvo com o vizinho
   await sql()`
     with ord as (select id, row_number() over (order by position, id) rn from workouts where student_id=${sid}),
@@ -153,7 +153,7 @@ export async function duplicateWorkout(f: FormData) {
   // origem e destino precisam ser do professor logado
   const [ok] = await rows(s`select 1 as ok from workouts w join students a on a.id = w.student_id, students b
     where w.id=${id} and b.id=${to} and a.owner_id=${uid} and b.owner_id=${uid}`);
-  if (!ok) return back('/admin', 'Destino inválido');
+  if (!ok) return back('/admin/alunos', 'Destino inválido');
   await s`
     with nw as (insert into workouts (student_id, name, focus, position)
       select ${to}, name, focus, (select coalesce(max(position),0)+1 from workouts where student_id=${to}) from workouts where id=${id} returning id)
@@ -166,7 +166,7 @@ export async function duplicateWorkout(f: FormData) {
 // aluno dono do treino; se não for do professor logado, volta para a lista
 async function ownerOf(uid: number, wid: number): Promise<number> {
   const [r] = await rows(sql()`select w.student_id from workouts w join students s on s.id = w.student_id where w.id=${wid} and s.owner_id=${uid}`);
-  if (!r) return back('/admin', 'Treino não encontrado');
+  if (!r) return back('/admin/alunos', 'Treino não encontrado');
   return r.student_id as number;
 }
 

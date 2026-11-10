@@ -8,6 +8,7 @@ import { Act, Flash, Top, initials } from '../../ui';
 import { AccessCode, ExerciseForm } from '../../Client';
 import { StudentFields } from '../../fields';
 import Avaliacao, { type Av } from '../../Avaliacao';
+import { applyTemplate, saveAsTemplate } from '../../acoes-modelos';
 import { deleteExercise, deleteStudent, deleteWorkout, duplicateWorkout, moveExercise, moveWorkout, newAccessCode, saveExercise, savePlanUntil, saveStudent, saveWorkout } from '../../actions';
 
 const kg = (v: unknown) => (v == null ? '—' : `${Number(v).toLocaleString('pt-BR')} kg`);
@@ -23,7 +24,7 @@ export default async function Aluno({ params, searchParams }: { params: Promise<
   const [st] = await rows(s`select * from students where id=${id} and owner_id=${uid}`);
   if (!st) notFound();
 
-  const [workouts, exercises, others, library, [{ sessoes }], retornos, avs, [{ hoje, plan }]] = await Promise.all([
+  const [workouts, exercises, others, library, [{ sessoes }], retornos, avs, [{ hoje, plan }], modelos] = await Promise.all([
     rows(s`select * from workouts where student_id=${id} order by position, id`),
     rows(s`select e.* from workout_exercises e join workouts w on w.id=e.workout_id where w.student_id=${id} order by e.position, e.id`),
     rows(s`select id, name from students where id<>${id} and owner_id=${uid} order by name`),
@@ -37,6 +38,9 @@ export default async function Aluno({ params, searchParams }: { params: Promise<
     rows(s`select id, to_char(measured_on, 'YYYY-MM-DD') as d, weight_kg, body_fat, waist_cm, hip_cm, chest_cm, arm_cm, thigh_cm, notes
       from assessments where student_id=${id} order by measured_on, id`),
     rows(s`select to_char(now() at time zone 'America/Sao_Paulo', 'YYYY-MM-DD') as hoje, to_char(plan_until, 'YYYY-MM-DD') as plan from students where id=${id}`),
+    // modelos do professor e prontos (sem dono)
+    rows(s`select t.id, t.name, (t.owner_id is not null) as meu, (select count(*)::int from template_workouts tw where tw.template_id = t.id) as n
+      from templates t where t.owner_id = ${uid} or t.owner_id is null order by (t.owner_id is null), t.name`),
   ]);
   const val = validade(plan);
   const bmi = imc(st.weight_kg, st.height_m);
@@ -44,7 +48,7 @@ export default async function Aluno({ params, searchParams }: { params: Promise<
   return (
     <>
       <Flash m={msg} />
-      <Top title={st.name} sub={[bmi && `IMC ${bmi}`, st.age && `${st.age} anos`].filter(Boolean).join(' · ') || 'Aluno'} back="/admin">
+      <Top title={st.name} sub={[bmi && `IMC ${bmi}`, st.age && `${st.age} anos`].filter(Boolean).join(' · ') || 'Aluno'} back="/admin/alunos">
         <span className="avatar lg">{initials(st.name)}</span>
       </Top>
 
@@ -190,7 +194,59 @@ export default async function Aluno({ params, searchParams }: { params: Promise<
         </div>
       </details>
 
-      <Act action={deleteStudent} fields={{ id }} cls="btn danger block" label={<><Icon name="trash" size={18} />Excluir aluno</>} confirm={`Excluir ${st.name} e todo o histórico?`} />
+      <section className="panel tight" aria-label="Modelos de ficha">
+        <details>
+          <summary className="opt" style={{ borderTop: 0 }}><span><Icon name="layers" size={18} /> Aplicar modelo de ficha</span><span className="ibtn sq"><Icon name="right" size={16} /></span></summary>
+          {modelos.length ? (
+            <form action={applyTemplate} className="form" style={{ paddingBottom: 6 }}>
+              <input type="hidden" name="student_id" value={id} />
+              <label className="field"><span>Modelo</span>
+                <select name="template_id" required defaultValue="">
+                  <option value="" disabled>Escolher modelo</option>
+                  {modelos.some(t => t.meu) && <optgroup label="Meus modelos">{modelos.filter(t => t.meu).map(t => <option key={t.id} value={t.id}>{t.name} ({t.n} treinos)</option>)}</optgroup>}
+                  <optgroup label="Modelos prontos">{modelos.filter(t => !t.meu).map(t => <option key={t.id} value={t.id}>{t.name} ({t.n} treinos)</option>)}</optgroup>
+                </select>
+              </label>
+              <p className="muted" style={{ fontSize: '.85rem' }}>Os treinos do modelo entram depois dos que {st.name.split(' ')[0]} já tem. Depois é só ajustar cargas e exercícios.</p>
+              <button className="btn primary"><Icon name="copyPlus" size={18} />Aplicar modelo</button>
+            </form>
+          ) : <p className="muted" style={{ padding: '4px 4px 10px' }}>Nenhum modelo disponível ainda.</p>}
+        </details>
+        {workouts.length > 0 && (
+          <details>
+            <summary className="opt"><span><Icon name="download" size={18} /> Salvar ficha como modelo</span><span className="ibtn sq"><Icon name="right" size={16} /></span></summary>
+            <form action={saveAsTemplate} className="form" style={{ paddingBottom: 6 }}>
+              <input type="hidden" name="student_id" value={id} />
+              <label className="field"><span>Nome do modelo</span><input name="name" required maxLength={80} placeholder="Ex.: Hipertrofia iniciante A/B/C" /></label>
+              <label className="field"><span>Descrição (opcional)</span><input name="description" maxLength={300} placeholder="Ex.: 3x por semana" /></label>
+              <button className="btn">Salvar como modelo</button>
+            </form>
+          </details>
+        )}
+      </section>
+
+      <section className={st.delete_requested_at ? 'panel tight pn warn' : 'panel tight pn'} id="privacidade" aria-labelledby="priv-t">
+        <h2 id="priv-t"><Icon name="info" size={18} />Dados e privacidade</h2>
+        {st.delete_requested_at && (
+          <p className="pn-nota" style={{ color: 'var(--danger)', fontWeight: 700 }}>
+            {st.name.split(' ')[0]} pediu a exclusão dos dados em {new Date(st.delete_requested_at).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })}. Pela LGPD, exclua o cadastro abaixo (se precisar, baixe os dados antes).
+          </p>
+        )}
+        <div className="pn-list">
+          <div className="pn-row">
+            <span className="dot" style={{ width: 40, height: 40 }}><Icon name={st.consent_at ? 'check' : 'clock'} size={18} /></span>
+            <span className="grow">
+              <b>{st.consent_at ? 'Termo aceito' : 'Termo ainda não aceito'}</b>
+              <small>{st.consent_at
+                ? `${new Date(st.consent_at).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })} · versão ${st.consent_version}${st.consent_guardian ? ` · autorizado por ${st.consent_guardian} (responsável)` : ''}`
+                : 'O aluno aceita no primeiro acesso com o código'}</small>
+            </span>
+          </div>
+        </div>
+        <a className="opt" href={`/admin/alunos/${id}/dados`} download><span>Baixar dados do aluno (JSON)</span><span className="ibtn sq"><Icon name="download" size={16} /></span></a>
+      </section>
+
+      <Act action={deleteStudent} fields={{ id }} cls="btn danger block" label={<><Icon name="trash" size={18} />Excluir aluno e todos os dados</>} confirm={`Excluir ${st.name} e todo o histórico? Isso não pode ser desfeito.`} />
     </>
   );
 }

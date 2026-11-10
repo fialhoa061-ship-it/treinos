@@ -17,11 +17,22 @@ export async function destroySession() {
   (await cookies()).delete(COOKIE);
 }
 
-/** Id do professor logado, ou null. */
+/** Id do professor logado, ou null. Conta excluída ou desligada pelo principal derruba a sessão na hora. */
 export async function adminId(): Promise<number | null> {
   const t = (await cookies()).get(COOKIE)?.value;
   if (!t) return null;
-  try { return Number((await jwtVerify(t, key())).payload.uid) || null; } catch { return null; }
+  let uid: number;
+  try { uid = Number((await jwtVerify(t, key())).payload.uid); } catch { return null; }
+  if (!uid) return null;
+  const ok = (await sql()`select 1 from users where id = ${uid} and disabled_at is null`) as unknown[];
+  return ok.length ? uid : null;
+}
+
+/** Confere a senha do professor (confirmação de ações sensíveis). */
+export async function checkPassword(uid: number, pw: string): Promise<boolean> {
+  const { default: bcrypt } = await import('bcryptjs');
+  const [u] = (await sql()`select password_hash from users where id = ${uid}`) as { password_hash: string }[];
+  return !!u && pw.length > 0 && (await bcrypt.compare(pw, u.password_hash));
 }
 
 export async function isAdmin(): Promise<boolean> {
@@ -56,4 +67,13 @@ export async function getStudent(): Promise<Student | null> {
     const [st] = (await sql()`select id, name, notes from students where id = ${Number(payload.sid)} and access_code = ${String(payload.code)}`) as Student[];
     return st ?? null;
   } catch { return null; }
+}
+
+/** Professor logado com nome e se é o dono (quem convida outros professores). */
+export type Prof = { id: number; email: string; name: string | null; is_owner: boolean };
+export async function currentProf(): Promise<Prof> {
+  const uid = await requireAdmin();
+  const [u] = (await sql()`select id, email, name, is_owner from users where id = ${uid}`) as Prof[];
+  if (!u) redirect('/login');
+  return u;
 }

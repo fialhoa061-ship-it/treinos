@@ -6,6 +6,7 @@ import { ALERTAS, ESFORCO, type Alerta } from '@/lib/util';
 import { studentLogout } from '../login/actions';
 import Calendario, { type Dia } from './Calendario';
 import Evolucao, { type Ponto } from './Evolucao';
+import MeusDados from './MeusDados';
 import Icon from '../Icon';
 
 type Ex = { id: number; name: string; sets: number; reps: string; rest: string; notes: string | null; video_url: string | null };
@@ -43,10 +44,10 @@ function beep() {
   } catch { /* sem áudio */ }
 }
 
-export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId, sessions, today, evo = [], pesos = [] }: {
+export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId, sessions, today, evo = [], pesos = [], exclusaoPedida = false }: {
   sid: number; name: string; notes: string | null; workouts: Workout[];
   last: Record<string, LastSet[]>; lastWorkoutId: number | null; sessions: Dia[]; today: string;
-  evo?: Ponto[]; pesos?: { d: string; w: number }[];
+  evo?: Ponto[]; pesos?: { d: string; w: number }[]; exclusaoPedida?: boolean;
 }) {
   const pkey = `pend:${sid}`;
   const wkey = (id: number) => `treino:${sid}:${id}`;
@@ -175,6 +176,7 @@ export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId,
           <h2>Nenhum treino ainda</h2>
           <p>Assim que o seu professor cadastrar os treinos, eles aparecem aqui.</p>
         </div>
+        <MeusDados exclusaoPedida={exclusaoPedida} />
       </main>
     );
   }
@@ -302,6 +304,8 @@ export default function Aluno({ sid, name, notes, workouts, last, lastWorkoutId,
       })}
 
       <button className="btn primary block" onClick={finish} disabled={busy}>{busy ? 'Enviando…' : <><Icon name="check" size={20} />Finalizar treino</>}</button>
+
+      <MeusDados exclusaoPedida={exclusaoPedida} />
 
       {end > 0 && (
         <div id="timer" role="timer" aria-live="off">

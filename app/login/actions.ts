@@ -24,9 +24,10 @@ export async function login(_prev: string, form: FormData): Promise<string> {
 
   const s = sql();
   const email = String(form.get('email') ?? '').trim();
-  const [u] = await rows(s`select id, password_hash from users where email = ${email}`);
+  const [u] = await rows(s`select id, password_hash, disabled_at from users where lower(email) = lower(${email})`);
   if (u && (await bcrypt.compare(String(form.get('password') ?? ''), u.password_hash))) {
     await s`delete from login_attempts where ip = ${key}`;
+    if (u.disabled_at) return 'Seu acesso foi desligado pelo professor responsável. Fale com ele para religar.';
     await createSession(u.id);
     redirect('/admin');
   }
@@ -97,4 +98,23 @@ export async function resetPassword(_prev: string, form: FormData): Promise<stri
   await s`update password_resets set used_at = now() where user_id = ${r.user_id} and used_at is null`;
   await createSession(r.user_id);
   redirect('/admin?m=' + encodeURIComponent('Senha nova criada'));
+}
+
+// ---- convite de professor ----
+/** Cria a conta do professor convidado (nome e senha) e entra no painel. */
+export async function acceptInvite(_prev: string, form: FormData): Promise<string> {
+  const token = String(form.get('t') ?? ''), name = String(form.get('name') ?? '').trim().slice(0, 80);
+  const pw = String(form.get('password') ?? ''), pw2 = String(form.get('confirm') ?? '');
+  if (name.length < 2) return 'Digite seu nome.';
+  if (pw.length < 8) return 'A senha precisa ter pelo menos 8 caracteres.';
+  if (pw.length > 200) return 'Senha muito longa.';
+  if (pw !== pw2) return 'As duas senhas não são iguais.';
+  const s = sql();
+  const [inv] = token ? await rows(s`select id, email from invites where token_hash = ${sha(token)} and accepted_at is null and expires_at > now()`) : [];
+  if (!inv) return 'Este convite expirou ou já foi usado. Peça um novo ao professor responsável.';
+  if ((await rows(s`select 1 from users where lower(email) = lower(${inv.email})`)).length) return 'Já existe uma conta com este e-mail. Use "Entrar" ou "Esqueci minha senha".';
+  const [u] = await rows(s`insert into users (email, password_hash, name) values (${inv.email}, ${await bcrypt.hash(pw, 10)}, ${name}) returning id`);
+  await s`update invites set accepted_at = now() where id = ${inv.id}`;
+  await createSession(u.id);
+  redirect('/admin?m=' + encodeURIComponent('Bem-vindo! Comece cadastrando seus alunos'));
 }

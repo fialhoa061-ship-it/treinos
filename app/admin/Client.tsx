@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import Icon, { type IconName } from '../Icon';
 
 /** Barra de abas inferior do professor, com o + central para novo aluno. */
-export function TabBar({ logout }: { logout: (f: FormData) => Promise<void> }) {
+export function TabBar() {
   const path = usePathname();
   const tab = (href: string, label: string, icon: IconName, match: (p: string) => boolean) => (
     <Link href={href} aria-current={match(path) ? 'page' : undefined}><Icon name={icon} size={24} />{label}</Link>
@@ -14,11 +14,11 @@ export function TabBar({ logout }: { logout: (f: FormData) => Promise<void> }) {
   return (
     <div className="tabbar">
       <nav aria-label="Navegação">
-        {tab('/admin', 'Alunos', 'users', p => p === '/admin' || p.startsWith('/admin/alunos') || p.startsWith('/admin/historico'))}
-        {tab('/admin/biblioteca', 'Biblioteca', 'book', p => p.startsWith('/admin/biblioteca'))}
+        {tab('/admin', 'Início', 'home', p => p === '/admin')}
+        {tab('/admin/alunos', 'Alunos', 'users', p => p.startsWith('/admin/alunos') || p.startsWith('/admin/historico'))}
         <Link href="/admin/novo" className="fab" aria-label="Novo aluno" aria-current={path === '/admin/novo' ? 'page' : undefined}><Icon name="plus" size={28} /></Link>
-        {tab('/admin/backup', 'Backup', 'archive', p => p.startsWith('/admin/backup'))}
-        <form action={logout}><button type="submit"><Icon name="logout" size={24} />Sair</button></form>
+        {tab('/admin/biblioteca', 'Biblioteca', 'book', p => p.startsWith('/admin/biblioteca') || p.startsWith('/admin/modelos'))}
+        {tab('/admin/perfil', 'Perfil', 'user', p => ['/admin/perfil', '/admin/conta', '/admin/backup', '/admin/professores'].some(r => p.startsWith(r)))}
       </nav>
     </div>
   );

@@ -24,3 +24,6 @@ export function validade(d: string | null | undefined): { dias: number; texto: s
   const texto = dias < 0 ? `Treino vencido há ${n} ${u}` : dias === 0 ? 'Trocar o treino hoje' : `Trocar o treino em ${n} ${u}`;
   return { dias, texto, vencido: dias < 0, perto: dias >= 0 && dias <= 7 };
 }
+
+/** Versão do termo de consentimento (LGPD). Ao mudar o texto da política, suba o número: todos aceitam de novo. */
+export const TERMO_VERSAO = 1;

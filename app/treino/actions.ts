@@ -2,7 +2,8 @@
 
 import { rows, sql } from '@/lib/db';
 import { getStudent } from '@/lib/auth';
-import { ALERTAS } from '@/lib/util';
+import { redirect } from 'next/navigation';
+import { ALERTAS, TERMO_VERSAO } from '@/lib/util';
 
 type Log = { we_id: number; set: number; weight: string; reps: string };
 export type Feedback = { effort?: number | null; alerts?: string[]; comment?: string };
@@ -49,4 +50,27 @@ export async function saveSession(p: Payload): Promise<{ ok: boolean; expired?: 
     insert into set_logs (session_id, workout_exercise_id, set_number, weight_kg, reps)
     select ses.id, x.we, x.n, x.w, x.r from ses, jsonb_to_recordset(${JSON.stringify([...seen.values()])}::jsonb) as x(we int, n int, w numeric, r int)`;
   return { ok: true };
+}
+
+// ---- LGPD (aluno) ----
+/** Aceite do termo. Menor de 18 anos: exige o nome do responsável e a declaração dele. */
+export async function acceptConsent(_prev: string, f: FormData): Promise<string> {
+  const st = await getStudent();
+  if (!st) redirect('/login');
+  const s = sql();
+  const [a] = await rows(s`select age from students where id = ${st.id}`);
+  const menor = (a?.age != null && a.age < 18) || f.get('menor') === '1';
+  if (f.get('aceite') !== '1') return 'Para continuar, marque que leu e concorda com o termo.';
+  const resp = String(f.get('responsavel') ?? '').trim().slice(0, 120);
+  if (menor && (resp.length < 3 || f.get('aceite_resp') !== '1')) return 'Menores de 18 anos precisam do nome e da autorização do responsável.';
+  await s`update students set consent_at = now(), consent_version = ${TERMO_VERSAO}, consent_guardian = ${menor ? resp : null} where id = ${st.id}`;
+  redirect('/treino');
+}
+
+/** O aluno pede para apagar os dados. O professor recebe o pedido no painel e faz a exclusão. */
+export async function requestDeletion() {
+  const st = await getStudent();
+  if (!st) redirect('/login');
+  await sql()`update students set delete_requested_at = coalesce(delete_requested_at, now()) where id = ${st.id}`;
+  redirect('/treino?m=exclusao');
 }

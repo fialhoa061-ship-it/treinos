@@ -1,4 +1,5 @@
 import { rows, sql } from '@/lib/db';
+import Link from 'next/link';
 import Icon from '../../Icon';
 import { Act, Flash, Top } from '../ui';
 import { deleteLibrary, saveLibrary } from '../actions';
@@ -31,6 +32,12 @@ export default async function Biblioteca({ searchParams }: { searchParams: Promi
     <>
       <Flash m={m} />
       <Top title="Biblioteca" sub={`${list.length} exercícios em ${groups.size} ${groups.size === 1 ? 'categoria' : 'categorias'}`} />
+
+      <Link className="item" href="/admin/modelos">
+        <span className="dot"><Icon name="layers" size={20} /></span>
+        <span className="grow"><b>Modelos de ficha</b><small>Fichas prontas para aplicar a um aluno com um toque</small></span>
+        <span className="end"><Icon name="right" size={18} /></span>
+      </Link>
 
       <details className="add">
         <summary><Icon name="plus" size={18} />Novo exercício</summary>

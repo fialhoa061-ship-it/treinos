@@ -99,3 +99,67 @@ create index if not exists password_resets_user_idx on password_resets (user_id,
 -- cada aluno pertence a um professor: um professor só vê e altera os próprios alunos
 alter table students add column if not exists owner_id int references users(id) on delete cascade;
 create index if not exists students_owner_idx on students (owner_id);
+
+-- LGPD: termo de consentimento do aluno (com responsável quando menor) e pedido de exclusão
+alter table students add column if not exists consent_at timestamptz;
+alter table students add column if not exists consent_version int;
+alter table students add column if not exists consent_guardian text;
+alter table students add column if not exists delete_requested_at timestamptz;
+
+-- professores: nome e dono (quem convida outros professores)
+alter table users add column if not exists name text;
+alter table users add column if not exists is_owner boolean not null default false;
+update users set is_owner = true where id = (select min(id) from users) and not exists (select 1 from users where is_owner);
+
+-- convite de professor por e-mail: só o hash do token, vale 7 dias e uma única vez
+create table if not exists invites (
+  id serial primary key,
+  email text not null,
+  token_hash text unique not null,
+  invited_by int references users(id) on delete set null,
+  expires_at timestamptz not null,
+  accepted_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+-- modelos de ficha: owner_id nulo = modelo pronto, visível para todos os professores
+create table if not exists templates (
+  id serial primary key,
+  owner_id int references users(id) on delete cascade,
+  name text not null,
+  description text,
+  created_at timestamptz not null default now()
+);
+create table if not exists template_workouts (
+  id serial primary key,
+  template_id int not null references templates(id) on delete cascade,
+  name text not null,
+  focus text,
+  position int not null default 0
+);
+create table if not exists template_exercises (
+  id serial primary key,
+  template_workout_id int not null references template_workouts(id) on delete cascade,
+  name text not null,
+  sets int not null default 3,
+  reps text not null default '10',
+  rest text not null default '90 s',
+  notes text,
+  video_url text,
+  position int not null default 0
+);
+create index if not exists templates_owner_idx on templates (owner_id);
+
+-- professor desligado pelo principal: não entra mais, mas nada é apagado (pode ser religado)
+alter table users add column if not exists disabled_at timestamptz;
+
+-- avisos para o professor principal (ex.: um professor excluiu a própria conta)
+create table if not exists account_events (
+  id serial primary key,
+  kind text not null,
+  user_email text,
+  user_name text,
+  students int,
+  created_at timestamptz not null default now(),
+  seen_at timestamptz
+);

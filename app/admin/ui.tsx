@@ -40,4 +40,4 @@ export function Top({ title, sub, back, children }: { title: React.ReactNode; su
 }
 
 export const initials = (name: string) =>
-  name.trim().split(/\s+/).filter(Boolean).map(w => w[0]).filter((_, i, a) => i === 0 || i === a.length - 1).join('').toUpperCase() || '?';
+  name.trim().split(/\s+/).filter(w => /^\p{L}/u.test(w)).map(w => w[0]).filter((_, i, a) => i === 0 || i === a.length - 1).join('').toUpperCase() || '?';

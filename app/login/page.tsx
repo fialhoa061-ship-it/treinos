@@ -6,8 +6,9 @@ import Shell, { loginViewport } from './Shell';
 export const metadata = { title: 'Entrar' };
 export const viewport = loginViewport;
 
-export default async function LoginPage() {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ conta?: string }> }) {
   if (await isAdmin()) redirect('/admin');
   if (await getStudent()) redirect('/treino'); // aluno já logado (30 dias) vai direto ao treino
-  return <Shell><LoginForm /></Shell>;
+  const { conta } = await searchParams;
+  return <Shell><LoginForm aviso={conta === 'excluida' ? 'Sua conta foi excluída. Obrigado por usar o fit app.' : undefined} /></Shell>;
 }

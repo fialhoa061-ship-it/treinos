@@ -1,15 +1,24 @@
 import { redirect } from 'next/navigation';
 import { rows, sql } from '@/lib/db';
 import { getStudent } from '@/lib/auth';
+import { TERMO_VERSAO } from '@/lib/util';
 import Aluno from './Aluno';
+import Termo from './Termo';
 
 export const metadata = { title: 'Meu treino', robots: { index: false } };
 export const dynamic = 'force-dynamic';
 
-export default async function TreinoPage() {
+export default async function TreinoPage({ searchParams }: { searchParams: Promise<{ m?: string }> }) {
   const st = await getStudent();
   if (!st) redirect('/login');
   const s = sql();
+  const { m } = await searchParams;
+
+  // LGPD: sem o termo aceito (ou com versão antiga), mostra o termo antes do treino
+  const [lg] = await rows(s`select age, consent_version, delete_requested_at from students where id = ${st.id}`);
+  if ((lg?.consent_version ?? 0) < TERMO_VERSAO) {
+    return <div className="app"><Termo nome={st.name} menor={lg?.age != null && lg.age < 18} idadeConhecida={lg?.age != null} /></div>;
+  }
 
   const workouts = await rows(s`
     select w.id, w.name, w.focus,
@@ -50,5 +59,6 @@ export default async function TreinoPage() {
   ]);
 
   return <div className="app"><Aluno sid={st.id} name={st.name} notes={st.notes} workouts={workouts as never} last={last} lastWorkoutId={lw?.workout_id ?? null}
-    sessions={days as never} today={today} evo={evo as never} pesos={pesos as never} /></div>;
+    sessions={days as never} today={today} evo={evo as never} pesos={pesos as never}
+    exclusaoPedida={!!lg?.delete_requested_at || m === 'exclusao'} /></div>;
 }

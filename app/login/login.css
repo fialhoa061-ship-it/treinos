@@ -125,3 +125,5 @@ body:has(.lp){min-height:0}
 .lp-ok{margin:0;padding:14px 16px;border-radius:18px;background:rgba(121,163,255,.16);border:1px solid rgba(121,163,255,.45);font-size:.95rem;line-height:1.45}
 a.lp-switch,a.lp-main{text-decoration:none;display:flex}
 a.lp-switch{display:inline-flex;align-items:center;text-decoration:underline;text-underline-offset:4px;text-decoration-color:rgba(255,255,255,.4)}
+
+.lp a.lp-priv{display:table;margin:14px auto 0;font-size:.85rem;color:rgba(255,255,255,.75)}

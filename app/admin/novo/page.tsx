@@ -7,7 +7,7 @@ export default async function NovoAluno({ searchParams }: { searchParams: Promis
   return (
     <>
       <Flash m={m} />
-      <Top title="Novo aluno" sub="O código de acesso é gerado ao salvar" back="/admin" />
+      <Top title="Novo aluno" sub="O código de acesso é gerado ao salvar" back="/admin/alunos" />
       <form action={saveStudent} className="panel form">
         <StudentFields />
         <button className="btn primary block">Cadastrar aluno</button>

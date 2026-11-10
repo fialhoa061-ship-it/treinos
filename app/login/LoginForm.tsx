@@ -11,7 +11,7 @@ const Arrow = () => (
   </span>
 );
 
-export default function LoginForm() {
+export default function LoginForm({ aviso }: { aviso?: string }) {
   const [view, setView] = useState<View>('start');
   const [showPw, setShowPw] = useState(false);
   const [err, action, pending] = useActionState(login, '');
@@ -32,6 +32,7 @@ export default function LoginForm() {
   return (
     <main className="lp-sheet" data-view={view}>
       <span className="lp-handle" aria-hidden="true" />
+      {aviso && view === 'start' && <p className="lp-ok" role="status" style={{ marginBottom: 16 }}>{aviso}</p>}
       <div className="lp-head">
         {view !== 'start' && (
           <button type="button" className="lp-back" aria-label="Voltar" onClick={() => setView('start')}>
@@ -50,6 +51,7 @@ export default function LoginForm() {
           <button type="button" className="lp-ghost" onClick={() => setView('prof')}>ou Professor</button>
         </div>
       )}
+      {view === 'start' && <a className="lp-switch lp-priv" href="/privacidade">Privacidade</a>}
 
       {view === 'aluno' && (
         <form action={codeAction} className="lp-form" key="aluno">
