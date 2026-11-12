@@ -28,7 +28,9 @@ export default function Intro() {
     if (document.documentElement.dataset.intro === 'off') { el.style.display = 'none'; return; }
 
     const letters = Array.from(name.current!.children) as HTMLElement[];
-    const full = name.current!.scrollWidth; // largura do nome completo
+    // largura acumulada até cada letra: a caixa do nome cresce letra a letra, sem vão antes do símbolo
+    const x0 = letters[0]?.getBoundingClientRect().left ?? 0;
+    const ends = letters.map(l => l.getBoundingClientRect().right - x0);
     let raf = 0, start = -1, done = false;
 
     const finish = () => {
@@ -50,7 +52,7 @@ export default function Intro() {
       const p = t < 1 ? seg(t, 0, 0.4) : 1 - seg(t, 1.5, 2.1);
       const n = Math.round(p * letters.length);
       letters.forEach((l, i) => { l.style.opacity = i < n ? '1' : '0'; });
-      name.current!.style.width = `${p * full}px`; // o símbolo acompanha porque o conjunto é centralizado
+      name.current!.style.width = `${n ? ends[n - 1] : 0}px`; // o símbolo acompanha porque o conjunto é centralizado
 
       // símbolo: respira, depois gira e invade a tela
       const breathe = 1 + 0.03 * Math.sin(Math.PI * seg(t, 0.4, 1.5));

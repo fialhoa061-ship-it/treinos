@@ -7,7 +7,7 @@ import { LibrarySearch } from '../Client';
 
 type R = { id?: number; name?: string; video_url?: string | null; notes?: string | null; category?: string | null };
 
-function LibFields({ r = {}, cats }: { r?: R; cats: string[] }) {
+function LibFields({ r = {} }: { r?: R }) {
   return (
     <>
       <label className="field"><span>Nome</span><input name="name" required defaultValue={r.name} /></label>
@@ -16,7 +16,6 @@ function LibFields({ r = {}, cats }: { r?: R; cats: string[] }) {
       </label>
       <label className="field"><span>Link do vídeo</span><input name="video_url" type="url" inputMode="url" placeholder="https://youtube.com/…" defaultValue={r.video_url ?? ''} /></label>
       <label className="field"><span>Observações padrão</span><textarea name="notes" rows={3} defaultValue={r.notes ?? ''} /></label>
-      {cats.length > 0 && <datalist id="lib-cats">{cats.map(c => <option key={c} value={c} />)}</datalist>}
     </>
   );
 }
@@ -31,6 +30,8 @@ export default async function Biblioteca({ searchParams }: { searchParams: Promi
   return (
     <>
       <Flash m={m} />
+      {/* uma lista de categorias só, compartilhada por todos os formulários (antes era repetida em cada exercício) */}
+      {cats.length > 0 && <datalist id="lib-cats">{cats.map(c => <option key={c} value={c} />)}</datalist>}
       <Top title="Biblioteca" sub={`${list.length} exercícios em ${groups.size} ${groups.size === 1 ? 'categoria' : 'categorias'}`} />
 
       <Link className="item" href="/admin/modelos">
@@ -42,7 +43,7 @@ export default async function Biblioteca({ searchParams }: { searchParams: Promi
       <details className="add">
         <summary><Icon name="plus" size={18} />Novo exercício</summary>
         <div className="body">
-          <form action={saveLibrary} className="form"><LibFields cats={cats} /><button className="btn primary">Adicionar à biblioteca</button></form>
+          <form action={saveLibrary} className="form"><LibFields /><button className="btn primary">Adicionar à biblioteca</button></form>
         </div>
       </details>
 
@@ -61,7 +62,7 @@ export default async function Biblioteca({ searchParams }: { searchParams: Promi
                   <div className="body">
                     <form action={saveLibrary} className="form">
                       <input type="hidden" name="id" value={r.id} />
-                      <LibFields r={r} cats={cats} />
+                      <LibFields r={r} />
                       <button className="btn primary">Salvar</button>
                     </form>
                     {r.video_url && <a className="btn soft" href={r.video_url} target="_blank" rel="noopener"><Icon name="play" size={18} />Abrir vídeo</a>}

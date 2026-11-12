@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: 'Treinos', statusBarStyle: 'black-translucent' },
 };
 
-export const viewport: Viewport = { themeColor: '#111214', width: 'device-width', initialScale: 1 };
+// cover: libera o env(safe-area-inset-*) usado no topo, na barra de abas e no timer (notch e barra de início)
+export const viewport: Viewport = { themeColor: '#111214', width: 'device-width', initialScale: 1, viewportFit: 'cover' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
