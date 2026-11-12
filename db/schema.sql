@@ -163,3 +163,48 @@ create table if not exists account_events (
   created_at timestamptz not null default now(),
   seen_at timestamptz
 );
+
+-- ---------- dieta: plano alimentar por refeição ----------
+alter table students add column if not exists diet_notes text; -- orientações gerais (água, restrições, horários)
+create table if not exists diet_meals (
+  id serial primary key,
+  student_id int not null references students(id) on delete cascade,
+  name text not null,
+  time_hint text, -- ex.: "07:30"
+  position int not null default 0
+);
+create index if not exists diet_meals_student_idx on diet_meals (student_id, position);
+create table if not exists diet_items (
+  id serial primary key,
+  meal_id int not null references diet_meals(id) on delete cascade,
+  food text not null,
+  quantity text, -- ex.: "2 fatias", "150 g"
+  notes text,
+  position int not null default 0
+);
+-- o aluno marca a refeição feita no dia (dia em horário de Brasília)
+create table if not exists diet_checks (
+  id serial primary key,
+  student_id int not null references students(id) on delete cascade,
+  meal_id int not null references diet_meals(id) on delete cascade,
+  day date not null,
+  unique (meal_id, day)
+);
+create index if not exists diet_checks_student_idx on diet_checks (student_id, day);
+
+-- ---------- metas e desafios ----------
+-- kind: weight (peso alvo), sessions_week (treinos por semana) = metas.
+--       sessions (treinos no período), diet_days (dias com a dieta completa no período) = desafios com prazo
+create table if not exists goals (
+  id serial primary key,
+  student_id int not null references students(id) on delete cascade,
+  kind text not null check (kind in ('weight', 'sessions_week', 'sessions', 'diet_days')),
+  title text not null,
+  target numeric(7,1) not null,
+  start_value numeric(7,1), -- peso no começo da meta (para medir o quanto já andou)
+  starts_on date not null default current_date,
+  ends_on date,
+  done_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists goals_student_idx on goals (student_id, created_at);

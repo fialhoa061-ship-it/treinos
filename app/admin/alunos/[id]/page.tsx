@@ -62,6 +62,12 @@ export default async function Aluno({ params, searchParams }: { params: Promise<
         <Link className="opt" href={`/admin/historico/${id}`}>
           <span>Histórico de cargas</span><span className="ibtn sq"><Icon name="right" size={16} /></span>
         </Link>
+        <Link className="opt" href={`/admin/alunos/${id}/dieta`}>
+          <span><Icon name="utensils" size={18} />Plano alimentar</span><span className="ibtn sq"><Icon name="right" size={16} /></span>
+        </Link>
+        <Link className="opt" href={`/admin/alunos/${id}/metas`}>
+          <span><Icon name="trophy" size={18} />Metas e desafios</span><span className="ibtn sq"><Icon name="right" size={16} /></span>
+        </Link>
         <details>
           <summary className="opt"><span>Editar dados do aluno</span><span className="ibtn sq"><Icon name="right" size={16} /></span></summary>
           <form action={saveStudent} className="form" style={{ paddingTop: 4 }}>

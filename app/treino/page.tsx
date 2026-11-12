@@ -4,6 +4,7 @@ import { getStudent } from '@/lib/auth';
 import { TERMO_VERSAO } from '@/lib/util';
 import Aluno from './Aluno';
 import Termo from './Termo';
+import Nav from './Nav';
 import Encerrado, { type Ganho } from './Encerrado';
 
 export const metadata = { title: 'Meu treino', robots: { index: false } };
@@ -80,5 +81,5 @@ export default async function TreinoPage({ searchParams }: { searchParams: Promi
 
   return <div className="app"><Aluno sid={st.id} name={st.name} notes={st.notes} workouts={workouts as never} last={last} lastWorkoutId={lw?.workout_id ?? null}
     sessions={days as never} today={today} evo={evo as never} pesos={pesos as never}
-    exclusaoPedida={!!lg?.delete_requested_at || m === 'exclusao'} fichaVencida={vencida} /></div>;
+    exclusaoPedida={!!lg?.delete_requested_at || m === 'exclusao'} fichaVencida={vencida} /><Nav /></div>;
 }
