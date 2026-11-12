@@ -18,3 +18,13 @@ export async function marcarRefeicao(mealId: number, feito: boolean): Promise<{ 
   }
   return { ok: true };
 }
+
+/** Copos de água bebidos hoje (valor absoluto do dia; a tela envia um de cada vez, então o último toque é o que fica). */
+export async function marcarAgua(copos: number): Promise<{ ok: boolean }> {
+  const st = await getStudent();
+  if (!st) return { ok: false };
+  const n = Math.min(30, Math.max(0, Math.round(Number(copos)) || 0));
+  await sql()`insert into water_logs (student_id, day, cups) values (${st.id}, (now() at time zone 'America/Sao_Paulo')::date, ${n})
+    on conflict (student_id, day) do update set cups = excluded.cups`;
+  return { ok: true };
+}

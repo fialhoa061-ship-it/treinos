@@ -3,7 +3,7 @@ import { rows, sql } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
 import Icon from '../../../../Icon';
 import { Act, Flash, Top } from '../../../ui';
-import { addDefaultMeals, deleteItem, deleteMeal, moveMeal, saveDietNotes, saveItem, saveMeal } from '../../../acoes-bemestar';
+import { addDefaultMeals, deleteItem, deleteMeal, moveMeal, saveDietNotes, saveItem, saveMeal, saveWaterGoal } from '../../../acoes-bemestar';
 
 function ItemFields({ mealId, it }: { mealId: number; it?: { id: number; food: string; quantity: string | null; notes: string | null } }) {
   return (
@@ -25,15 +25,19 @@ export default async function DietaAluno({ params, searchParams }: { params: Pro
   if (!Number.isInteger(id) || id < 1 || id > 2147483647) notFound();
   const uid = await requireAdmin();
   const s = sql();
-  const [st] = await rows(s`select id, name, diet_notes from students where id=${id} and owner_id=${uid}`);
+  const [st] = await rows(s`select id, name, diet_notes, water_cups from students where id=${id} and owner_id=${uid}`);
   if (!st) notFound();
-  const [meals, items, [adesao]] = await Promise.all([
+  const [meals, items, [adesao], [agua]] = await Promise.all([
     rows(s`select * from diet_meals where student_id=${id} order by position, id`),
     rows(s`select i.* from diet_items i join diet_meals m on m.id = i.meal_id where m.student_id=${id} order by i.position, i.id`),
     // adesão: refeições marcadas nos últimos 7 dias em relação ao esperado
     rows(s`select count(*)::int as feitas, (select count(*)::int from diet_meals where student_id=${id}) * 7 as total
       from diet_checks where student_id=${id} and day > (now() at time zone 'America/Sao_Paulo')::date - 7`),
+    // água nos últimos 7 dias: dias em que bateu a meta e média de copos (dias sem registro contam como zero)
+    rows(s`select count(*) filter (where cups >= ${st.water_cups})::int as dias, coalesce(sum(cups), 0)::int as copos
+      from water_logs where student_id=${id} and day > (now() at time zone 'America/Sao_Paulo')::date - 7`),
   ]);
+  const litros = (copos: number) => (copos * 0.25).toLocaleString('pt-BR', { maximumFractionDigits: 2 });
   const primeiro = st.name.split(' ')[0];
   const pct = adesao.total ? Math.round((adesao.feitas / adesao.total) * 100) : 0;
 
@@ -125,6 +129,20 @@ export default async function DietaAluno({ params, searchParams }: { params: Pro
           </div>
         </details>
       )}
+
+      <section className="panel tight" aria-label="Água">
+        <div className="panel-h" style={{ marginBottom: 10 }}><h2>Água</h2><span className="tag blue">{agua.dias}/7 dias na meta</span></div>
+        <p className="muted" style={{ fontSize: '.86rem', marginBottom: 12 }}>
+          Média de {litros(agua.copos / 7)} L por dia nos últimos 7 dias. {primeiro} marca os copos na tela da dieta.
+        </p>
+        <form action={saveWaterGoal} className="form">
+          <input type="hidden" name="student_id" value={id} />
+          <div className="grid2" style={{ alignItems: 'end' }}>
+            <label className="field"><span>Meta diária (copos de 250 ml)</span><input name="cups" type="number" inputMode="numeric" min={1} max={30} required defaultValue={st.water_cups} /></label>
+            <button className="btn">Salvar meta</button>
+          </div>
+        </form>
+      </section>
 
       <section className="panel tight" aria-label="Orientações gerais">
         <details open={!!st.diet_notes}>

@@ -3,7 +3,7 @@ import { rows, sql } from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
 import { jogo } from '@/lib/jogo';
 import Icon from '../../../../Icon';
-import { MetaCard, Conquistas } from '../../../../treino/Metas';
+import { Conquistas, DesafioCard, MetaCard, NivelCard, Recordes, Semana } from '../../../../treino/Metas';
 import { Act, Flash, Top } from '../../../ui';
 import { deleteGoal, saveGoal } from '../../../acoes-bemestar';
 
@@ -25,6 +25,8 @@ export default async function MetasAluno({ params, searchParams }: { params: Pro
       <Flash m={m} />
       <Top title="Metas e desafios" sub={st.name} back={`/admin/alunos/${id}`} />
 
+      <NivelCard n={j.nivel} quem={primeiro} />
+
       <section className="panel streak" aria-label="Sequência">
         <span className={j.streak ? 'flame on' : 'flame'}><Icon name="flame" size={30} /></span>
         <div className="grow">
@@ -32,6 +34,9 @@ export default async function MetasAluno({ params, searchParams }: { params: Pro
           <p className="muted">{j.semana}/{j.alvoSemana} treinos esta semana · {j.treinos} no total · melhor sequência: {j.melhorSequencia}</p>
         </div>
       </section>
+
+      <Semana dias={j.semanaDias} titulo={`Semana de ${primeiro}`}><span className="tag">{j.desafiosFeitos} {j.desafiosFeitos === 1 ? 'desafio cumprido' : 'desafios cumpridos'}</span></Semana>
+      <DesafioCard d={j.desafio} />
 
       <div className="section-t"><h2>Metas</h2><span>{j.metas.length}</span></div>
       {j.metas.map(g => <MetaCard key={g.id} m={g} extra={apagar(g.id, g.title)} />)}
@@ -65,6 +70,7 @@ export default async function MetasAluno({ params, searchParams }: { params: Pro
               <select name="kind" defaultValue="sessions">
                 <option value="sessions">Treinos no período</option>
                 <option value="diet_days">Dias com a dieta completa</option>
+                <option value="water_days">Dias batendo a meta de água</option>
               </select>
             </label>
             <div className="grid2">
@@ -77,6 +83,15 @@ export default async function MetasAluno({ params, searchParams }: { params: Pro
           </form>
         </div>
       </details>
+
+      {j.pessoais.length > 0 && (
+        <>
+          <div className="section-t"><h2>Metas pessoais de {primeiro}</h2><span>{j.pessoais.length}</span></div>
+          {j.pessoais.map(g => <MetaCard key={g.id} m={g} extra={apagar(g.id, g.title)} />)}
+        </>
+      )}
+
+      <Recordes list={j.recordes} />
 
       <Conquistas list={j.conquistas} />
     </>

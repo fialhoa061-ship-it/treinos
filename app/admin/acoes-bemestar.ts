@@ -30,6 +30,16 @@ export async function saveDietNotes(f: FormData) {
   dieta(sid, 'Orientações salvas');
 }
 
+/** Meta diária de água do aluno, em copos de 250 ml. */
+export async function saveWaterGoal(f: FormData) {
+  const uid = await requireAdmin();
+  const sid = int(f, 'student_id'), copos = int(f, 'cups');
+  if (!(await mine(uid, sid))) return go('/admin', 'Aluno não encontrado');
+  if (copos < 1 || copos > 30) return dieta(sid, 'Use de 1 a 30 copos');
+  await sql()`update students set water_cups=${copos} where id=${sid} and owner_id=${uid}`;
+  dieta(sid, 'Meta de água salva');
+}
+
 const PADRAO: [string, string][] = [['Café da manhã', '07:00'], ['Lanche da manhã', '10:00'], ['Almoço', '12:30'], ['Lanche da tarde', '16:00'], ['Jantar', '19:30'], ['Ceia', '21:30']];
 
 export async function addDefaultMeals(f: FormData) {
@@ -92,7 +102,7 @@ export async function deleteItem(f: FormData) {
 }
 
 // ---------------- metas e desafios ----------------
-const FAIXA: Record<Kind, [number, number]> = { weight: [20, 300], sessions_week: [1, 7], sessions: [1, 300], diet_days: [1, 366] };
+const FAIXA: Record<Kind, [number, number]> = { weight: [20, 300], sessions_week: [1, 7], sessions: [1, 300], diet_days: [1, 366], water_days: [1, 366] };
 
 export async function saveGoal(f: FormData) {
   const uid = await requireAdmin();
@@ -111,6 +121,7 @@ export async function saveGoal(f: FormData) {
     sessions_week: `${alvo} treinos por semana`,
     sessions: `${alvo} treinos${fim ? ` até ${fim.split('-').reverse().slice(0, 2).join('/')}` : ''}`,
     diet_days: `${alvo} dias com a dieta completa`,
+    water_days: `${alvo} dias batendo a meta de água`,
   } satisfies Record<Kind, string>)[kind];
 
   // meta de peso mede o caminho já andado: guarda o peso de hoje como ponto de partida

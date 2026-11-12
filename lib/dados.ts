@@ -19,6 +19,9 @@ export async function dadosDoAluno(sid: number) {
       coalesce((select json_agg(json_build_object('exercicio', e.name, 'serie', l.set_number, 'carga_kg', l.weight_kg, 'repeticoes', l.reps) order by e.position, l.set_number)
         from set_logs l join workout_exercises e on e.id = l.workout_exercise_id where l.session_id = se.id), '[]') as series
       from sessions se join workouts w on w.id = se.workout_id where se.student_id = ${sid} order by se.finished_at`,
+    refeicoes_marcadas: await s`select c.day as dia, m.name as refeicao from diet_checks c join diet_meals m on m.id = c.meal_id where c.student_id = ${sid} order by c.day, m.position`,
+    agua: await s`select day as dia, cups as copos_250ml from water_logs where student_id = ${sid} order by day`,
+    metas: await s`select title as meta, kind as tipo, target as alvo, starts_on as inicio, ends_on as fim, by_student as criada_pelo_aluno from goals where student_id = ${sid} order by created_at`,
   };
 }
 

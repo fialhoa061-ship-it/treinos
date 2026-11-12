@@ -36,6 +36,10 @@ const P = {
   target: <><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r="1" /></>,
   lock: <><rect x="5" y="10.5" width="14" height="9.5" rx="2.5" /><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" /></>,
   layers: <><path d="M12 3.5L3 8l9 4.5L21 8z" /><path d="M3 12.5l9 4.5 9-4.5" /><path d="M3 16.5l9 4.5 9-4.5" /></>,
+  droplet: <path d="M12 3.5c3.3 4 6 7.3 6 10.5a6 6 0 0 1-12 0c0-3.2 2.7-6.5 6-10.5z" />,
+  star: <path d="M12 3.8l2.5 5.2 5.7.7-4.2 3.9 1.1 5.6L12 16.4l-5.1 2.8 1.1-5.6-4.2-3.9 5.7-.7z" />,
+  zap: <path d="M13 3L5 13.5h6L10 21l8-10.5h-6z" />,
+  medal: <><circle cx="12" cy="15" r="5.5" /><path d="M8.5 10.7L6 3.5h4l2 5M15.5 10.7L18 3.5h-4l-1.3 3.7" /><path d="M12 12.7v4.6" /></>,
 } as const;
 
 export type IconName = keyof typeof P;

@@ -208,3 +208,16 @@ create table if not exists goals (
   created_at timestamptz not null default now()
 );
 create index if not exists goals_student_idx on goals (student_id, created_at);
+
+-- ---------- água e metas pessoais ----------
+alter table students add column if not exists water_cups int not null default 8; -- meta diária de água, em copos de 250 ml (o professor ajusta)
+create table if not exists water_logs (
+  student_id int not null references students(id) on delete cascade,
+  day date not null, -- dia em horário de Brasília
+  cups int not null default 0 check (cups between 0 and 30),
+  primary key (student_id, day)
+);
+alter table goals add column if not exists by_student boolean not null default false; -- meta pessoal, criada pelo próprio aluno
+-- water_days (dias batendo a água no período) entra como desafio
+alter table goals drop constraint if exists goals_kind_check;
+alter table goals add constraint goals_kind_check check (kind in ('weight', 'sessions_week', 'sessions', 'diet_days', 'water_days'));
