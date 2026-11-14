@@ -7,7 +7,7 @@ export async function dadosDoAluno(sid: number) {
     plan_until as troca_do_treino, consent_at as termo_aceito_em, consent_version as versao_do_termo, consent_guardian as responsavel,
     delete_requested_at as exclusao_pedida_em from students where id = ${sid}`);
   return {
-    app: 'fit app', tipo: 'dados-do-aluno', gerado_em: new Date().toISOString(),
+    app: 'NEXTFIT', tipo: 'dados-do-aluno', gerado_em: new Date().toISOString(),
     aluno,
     avaliacoes: await s`select measured_on as data, weight_kg as peso_kg, body_fat as gordura_pct, waist_cm as cintura_cm, hip_cm as quadril_cm,
       chest_cm as peito_cm, arm_cm as braco_cm, thigh_cm as coxa_cm, notes as observacoes from assessments where student_id = ${sid} order by measured_on`,

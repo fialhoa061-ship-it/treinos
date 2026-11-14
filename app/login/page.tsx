@@ -10,5 +10,5 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   if (await isAdmin()) redirect('/admin');
   if (await getStudent()) redirect('/treino'); // aluno já logado (30 dias) vai direto ao treino
   const { conta } = await searchParams;
-  return <Shell><LoginForm aviso={conta === 'excluida' ? 'Sua conta foi excluída. Obrigado por usar o fit app.' : undefined} /></Shell>;
+  return <Shell><LoginForm aviso={conta === 'excluida' ? 'Sua conta foi excluída. Obrigado por usar o NEXTFIT.' : undefined} /></Shell>;
 }

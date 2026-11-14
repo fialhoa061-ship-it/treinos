@@ -17,14 +17,14 @@ export async function sendResetEmail(to: string, link: string): Promise<void> {
   const resend = new Resend(key);
   const l = esc(link);
   const { error } = await resend.emails.send({
-    from: `fit app <nao-responda@${domain}>`,
+    from: `NEXTFIT <nao-responda@${domain}>`,
     to: [to],
     subject: 'Criar uma nova senha',
     text: `Recebemos um pedido para criar uma nova senha na área do professor.\n\nAbra este link (vale por 1 hora):\n${link}\n\nSe não foi você, ignore este e-mail: sua senha atual continua valendo.`,
     html: `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#111214;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;color:#f5f6f8">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:460px;background:#1c1d21;border-radius:24px;padding:32px 28px">
-<tr><td style="font-size:20px;font-weight:800;padding-bottom:20px">fit app</td></tr>
+<tr><td style="font-size:20px;font-weight:800;padding-bottom:20px">NEXTFIT</td></tr>
 <tr><td style="font-size:22px;font-weight:800;padding-bottom:10px">Criar uma nova senha</td></tr>
 <tr><td style="font-size:15px;line-height:1.5;color:#a4a6b0;padding-bottom:24px">Recebemos um pedido para criar uma nova senha na área do professor. O link vale por 1 hora e só pode ser usado uma vez.</td></tr>
 <tr><td style="padding-bottom:24px"><a href="${l}" style="display:inline-block;background:#2f6bff;color:#ffffff;text-decoration:none;font-weight:700;font-size:16px;padding:16px 28px;border-radius:999px">Criar nova senha</a></td></tr>
@@ -41,16 +41,16 @@ export async function sendInviteEmail(to: string, link: string, quem: string): P
   if (!key || !domain) throw new Error('Resend não configurado (RESEND_API_KEY / RESEND_EMAIL_DOMAIN)');
   const l = esc(link), q = esc(quem);
   const { error } = await new Resend(key).emails.send({
-    from: `fit app <nao-responda@${domain}>`,
+    from: `NEXTFIT <nao-responda@${domain}>`,
     to: [to],
     subject: 'Convite para a área do professor',
-    text: `${quem} convidou você para montar e acompanhar treinos no fit app.\n\nCrie sua conta por este link (vale por 7 dias):\n${link}\n\nSe você não esperava este convite, ignore este e-mail.`,
+    text: `${quem} convidou você para montar e acompanhar treinos no NEXTFIT.\n\nCrie sua conta por este link (vale por 7 dias):\n${link}\n\nSe você não esperava este convite, ignore este e-mail.`,
     html: `<!doctype html><html lang="pt-BR"><body style="margin:0;background:#111214;padding:32px 16px;font-family:Arial,Helvetica,sans-serif;color:#f5f6f8">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:460px;background:#1c1d21;border-radius:24px;padding:32px 28px">
-<tr><td style="font-size:20px;font-weight:800;padding-bottom:20px">fit app</td></tr>
+<tr><td style="font-size:20px;font-weight:800;padding-bottom:20px">NEXTFIT</td></tr>
 <tr><td style="font-size:22px;font-weight:800;padding-bottom:10px">Você foi convidado</td></tr>
-<tr><td style="font-size:15px;line-height:1.5;color:#a4a6b0;padding-bottom:24px">${q} convidou você para a área do professor do fit app, para montar e acompanhar os treinos dos seus alunos. O convite vale por 7 dias.</td></tr>
+<tr><td style="font-size:15px;line-height:1.5;color:#a4a6b0;padding-bottom:24px">${q} convidou você para a área do professor do NEXTFIT, para montar e acompanhar os treinos dos seus alunos. O convite vale por 7 dias.</td></tr>
 <tr><td style="padding-bottom:24px"><a href="${l}" style="display:inline-block;background:#2f6bff;color:#ffffff;text-decoration:none;font-weight:700;font-size:16px;padding:16px 28px;border-radius:999px">Criar minha conta</a></td></tr>
 <tr><td style="font-size:13px;line-height:1.5;color:#8e919c">Se o botão não abrir, copie este endereço no navegador:<br><a href="${l}" style="color:#79a3ff;word-break:break-all">${l}</a></td></tr>
 <tr><td style="font-size:13px;line-height:1.5;color:#8e919c;padding-top:20px">Se você não esperava este convite, ignore este e-mail.</td></tr>

@@ -24,11 +24,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       </picture>
       <div className="lp-shade" aria-hidden="true" />
       <header className="lp-brand">
-        <svg viewBox="0 0 512 512" fill="none" stroke="currentColor" strokeWidth="38" strokeLinecap="round" aria-hidden="true">
-          <circle cx="256" cy="256" r="190" />
-          <path d="M160 256h192M196 196v120M316 196v120" strokeWidth="42" />
-        </svg>
-        <span>fit app</span>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/nextfit-n.png" alt="" width={512} height={258} />
+        <span>NEXTFIT</span>
       </header>
       {children}
     </div>

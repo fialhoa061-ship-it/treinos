@@ -34,7 +34,7 @@ App pessoal de um professor e seus alunos, não uma plataforma de academia. Aces
 
 ## Brand Commitments
 
-- Nome no app: "Treinos" / abertura "FIT APP".
+- Nome no app: "NEXTFIT" (também na abertura animada).
 - Cor de destaque: **azul elétrico** (substitui o verde-limão da referência visual escolhida pelo usuário).
 - A tela de login mantém o visual atual e não entra em redesenhos do resto do app.
 

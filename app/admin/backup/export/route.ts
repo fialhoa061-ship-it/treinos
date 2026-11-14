@@ -25,7 +25,7 @@ export async function GET() {
   return new Response(JSON.stringify(out, null, 2), {
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'Content-Disposition': `attachment; filename="backup-treinos-${new Date().toISOString().slice(0, 10)}.json"`,
+      'Content-Disposition': `attachment; filename="backup-nextfit-${new Date().toISOString().slice(0, 10)}.json"`,
     },
   });
 }

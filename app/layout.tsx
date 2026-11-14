@@ -6,9 +6,9 @@ import Intro from './Intro';
 const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', display: 'swap' });
 
 export const metadata: Metadata = {
-  title: 'Treinos',
+  title: { default: 'NEXTFIT', template: '%s · NEXTFIT' }, // aba do navegador: "Minha dieta · NEXTFIT"
   description: 'Gestão de treinos de musculação',
-  appleWebApp: { capable: true, title: 'Treinos', statusBarStyle: 'black-translucent' },
+  appleWebApp: { capable: true, title: 'NEXTFIT', statusBarStyle: 'black-translucent' },
 };
 
 // cover: libera o env(safe-area-inset-*) usado no topo, na barra de abas e no timer (notch e barra de início)

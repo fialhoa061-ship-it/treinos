@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Icon from '../Icon';
 import { TERMO_VERSAO } from '@/lib/util';
 
-export const metadata = { title: 'Privacidade', description: 'Como o fit app trata os seus dados.' };
+export const metadata = { title: 'Privacidade', description: 'Como o NEXTFIT trata os seus dados.' };
 
 // Texto da política (versão TERMO_VERSAO). Ao mudar o conteúdo de forma relevante, suba TERMO_VERSAO em lib/util.ts:
 // todos os alunos aceitam o termo de novo no próximo acesso.
@@ -12,7 +12,7 @@ export default function Privacidade() {
       <main className="screen doc">
         <header className="top">
           <Link className="ibtn" href="/" aria-label="Voltar"><Icon name="left" /></Link>
-          <div className="grow"><h1>Privacidade</h1><p>Como o fit app trata os seus dados · versão {TERMO_VERSAO}</p></div>
+          <div className="grow"><h1>Privacidade</h1><p>Como o NEXTFIT trata os seus dados · versão {TERMO_VERSAO}</p></div>
         </header>
 
         <section className="panel">

@@ -1,5 +1,5 @@
 /* ============================================================
-   Treinos: grafite + azul elétrico
+   NEXTFIT: grafite + azul elétrico
    - .app  = painel do professor e treino do aluno (visual novo)
    - .lp   = tela de login (estilos em app/login/login.css)
    ============================================================ */
@@ -306,13 +306,12 @@ svg.chart{display:block;width:100%;height:auto;margin:4px 0 6px}
 .empty p{color:var(--fg2);max-width:32ch}
 
 /* ---------- abertura animada (Intro.tsx) ---------- */
-.intro{position:fixed;inset:0;z-index:9999;background:var(--accent);display:grid;place-items:center;overflow:hidden;cursor:pointer;touch-action:manipulation;font-family:var(--font-ui)}
+.intro{position:fixed;inset:0;z-index:9999;background:radial-gradient(120% 80% at 50% 45%,#0d1730 0%,#05070d 60%);display:grid;place-items:center;overflow:hidden;cursor:pointer;touch-action:manipulation;font-family:var(--font-ui)}
 html[data-intro=off] .intro{display:none}
-.intro-logo{display:flex;align-items:center;font-size:clamp(2.4rem,11vw,3.6rem);font-weight:800;letter-spacing:-.01em;color:#fff;line-height:1}
+.intro-logo{display:flex;align-items:center;font-size:clamp(2.2rem,10vw,3.4rem);font-weight:800;letter-spacing:.02em;color:#fff;line-height:1}
 .intro-name{display:inline-flex;overflow:hidden;white-space:pre;width:0}
-.intro-sym{display:block;width:1.35em;height:1.35em;margin-left:.2em}
-.intro-sym svg{display:block;width:100%;height:100%}
-.intro-flood{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.intro-name span:first-child{margin-left:.28em} /* respiro entre o N e o nome (some junto quando o nome apaga) */
+.intro-sym{display:block;width:auto;height:1.15em;opacity:0;transform-origin:50% 50%;will-change:transform,opacity}
 
 @media (prefers-reduced-motion:reduce){
   .intro{display:none}

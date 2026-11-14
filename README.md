@@ -1,4 +1,4 @@
-﻿# Treinos
+﻿# NEXTFIT
 
 Web app de gestão de treinos de musculação. Next.js (App Router) + Postgres (Neon), pronto para a Vercel e instalável no celular.
 

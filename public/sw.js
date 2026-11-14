@@ -40,7 +40,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET' || url.origin !== self.location.origin) return;
 
   // arquivos do app: o nome muda a cada versão, então o cache nunca fica velho
-  if (url.pathname.startsWith('/_next/static/') || url.pathname === '/icon.svg') {
+  if (url.pathname.startsWith('/_next/static/') || url.pathname === '/nextfit-n.png') {
     e.respondWith((async () => {
       const cache = await caches.open(STATIC);
       const hit = await cache.match(req);

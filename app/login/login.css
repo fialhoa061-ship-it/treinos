@@ -14,7 +14,7 @@ body:has(.lp){min-height:0}
 
 .lp-brand{display:flex;align-items:center;gap:10px;padding:max(22px,env(safe-area-inset-top)) 24px 0;font-size:1.45rem;font-weight:800;letter-spacing:-.02em;
   text-shadow:0 2px 12px rgba(0,0,0,.4);animation:lp-up .7s cubic-bezier(.22,1,.36,1) .1s both}
-.lp-brand svg{width:30px;height:30px;flex:none}
+.lp-brand img{width:auto;height:26px;flex:none} /* o N da logo */
 
 .lp-sheet{position:relative;width:100%;max-width:480px;margin:auto auto 0;padding:14px 24px max(26px,env(safe-area-inset-bottom));
   border-radius:32px 32px 0 0;
@@ -116,7 +116,7 @@ body:has(.lp){min-height:0}
    sem mexer no campo em foco nem depender de JavaScript. */
 @media (max-width:959px) and (max-height:620px){
   .lp-brand{padding-top:max(12px,env(safe-area-inset-top));font-size:1.15rem}
-  .lp-brand svg{width:24px;height:24px}
+  .lp-brand img{height:21px}
   .lp-handle,.lp-head p{display:none}
   .lp-sheet{padding-top:18px}
   .lp-choice,.lp-form{margin-top:16px;gap:10px}

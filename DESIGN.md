@@ -1,5 +1,5 @@
 ---
-name: Treinos
+name: NEXTFIT
 description: Painel de treino escuro para professor e aluno, com números grandes em azul elétrico sobre grafite.
 colors:
   accent: "#2f6bff"
@@ -118,7 +118,7 @@ components:
     height: "72px"
 ---
 
-# Design System: Treinos
+# Design System: NEXTFIT
 
 ## Overview
 
